@@ -184,7 +184,7 @@ const authenticateAdmin = (req, res, next) => {
 
 // Auth: Login
 
-app.post('https://glamoroussalon.onrender.com/api/login', (req, res) => {
+app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     console.log(`Login attempt for: ${email}`);
 
@@ -228,7 +228,7 @@ app.post('https://glamoroussalon.onrender.com/api/login', (req, res) => {
 });
 
 // Auth: Register
-app.post('https://glamoroussalon.onrender.com/api/register', async (req, res) => {
+app.post('/api/register', async (req, res) => {
     const { firstName, lastName, email, phone, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 8);
 
@@ -243,7 +243,7 @@ app.post('https://glamoroussalon.onrender.com/api/register', async (req, res) =>
 });
 
 // Services: Get All
-app.get('https://glamoroussalon.onrender.com/api/services', (req, res) => {
+app.get('/api/services', (req, res) => {
     executeQuery('SELECT * FROM services', (err, results) => {
         if (err) return res.status(500).send(err);
         res.send(results);
@@ -251,7 +251,7 @@ app.get('https://glamoroussalon.onrender.com/api/services', (req, res) => {
 });
 
 // Admin: Manage Services
-app.post('https://glamoroussalon.onrender.com/api/admin/services', authenticateAdmin, (req, res) => {
+app.post('/api/admin/services', authenticateAdmin, (req, res) => {
     const { name, price, duration, category, description, image } = req.body;
     executeQuery('INSERT INTO services (name, price, duration, category, description, image) VALUES (?, ?, ?, ?, ?, ?)',
         [name, price, duration, category, description, image], (err, results) => {
@@ -260,7 +260,7 @@ app.post('https://glamoroussalon.onrender.com/api/admin/services', authenticateA
         });
 });
 
-app.put('https://glamoroussalon.onrender.com/api/admin/services/:id', authenticateAdmin, (req, res) => {
+app.put('/api/admin/services/:id', authenticateAdmin, (req, res) => {
     const { name, price, duration, category, description, image } = req.body;
     executeQuery('UPDATE services SET name=?, price=?, duration=?, category=?, description=?, image=? WHERE id=?',
         [name, price, duration, category, description, image, req.params.id], (err) => {
@@ -269,7 +269,7 @@ app.put('https://glamoroussalon.onrender.com/api/admin/services/:id', authentica
         });
 });
 
-app.delete('https://glamoroussalon.onrender.com/api/admin/services/:id', authenticateAdmin, (req, res) => {
+app.delete('/api/admin/services/:id', authenticateAdmin, (req, res) => {
     executeQuery('DELETE FROM services WHERE id = ?', [req.params.id], (err) => {
         if (err) return res.status(500).send(err);
         res.send({ message: 'Service deleted' });
@@ -277,14 +277,14 @@ app.delete('https://glamoroussalon.onrender.com/api/admin/services/:id', authent
 });
 
 // Admin: Manage Bookings
-app.get('https://glamoroussalon.onrender.com/api/admin/bookings', authenticateAdmin, (req, res) => {
+app.get('/api/admin/bookings', authenticateAdmin, (req, res) => {
     executeQuery('SELECT * FROM bookings ORDER BY created_at DESC', (err, results) => {
         if (err) return res.status(500).send(err);
         res.send(results);
     });
 });
 
-app.put('https://glamoroussalon.onrender.com/api/admin/bookings/:id', authenticateAdmin, (req, res) => {
+app.put('/api/admin/bookings/:id', authenticateAdmin, (req, res) => {
     const { status } = req.body;
     executeQuery('UPDATE bookings SET status = ? WHERE id = ?', [status, req.params.id], (err) => {
         if (err) return res.status(500).send(err);
@@ -293,7 +293,7 @@ app.put('https://glamoroussalon.onrender.com/api/admin/bookings/:id', authentica
 });
 
 // Admin: Manage Users
-app.get('https://glamoroussalon.onrender.com/api/admin/users', authenticateAdmin, (req, res) => {
+app.get('/api/admin/users', authenticateAdmin, (req, res) => {
     executeQuery('SELECT id, first_name, last_name, email, phone, role as role_val, created_at FROM users', (err, results) => {
         if (err) return res.status(500).send(err);
         res.send(results);
@@ -301,7 +301,7 @@ app.get('https://glamoroussalon.onrender.com/api/admin/users', authenticateAdmin
 });
 
 // Bookings
-app.post('https://glamoroussalon.onrender.com/api/bookings', (req, res) => {
+app.post('/api/bookings', (req, res) => {
     const { userEmail, serviceName, price, date, time } = req.body;
     executeQuery('INSERT INTO bookings (user_email, service_name, price, date, time) VALUES (?, ?, ?, ?, ?)',
         [userEmail, serviceName, price, date, time], (err, results) => {
@@ -310,7 +310,7 @@ app.post('https://glamoroussalon.onrender.com/api/bookings', (req, res) => {
         });
 });
 
-app.get('https://glamoroussalon.onrender.com/api/user/bookings', (req, res) => {
+app.get('/api/user/bookings', (req, res) => {
     const email = req.query.email;
     executeQuery('SELECT * FROM bookings WHERE user_email = ?', [email], (err, results) => {
         if (err) return res.status(500).send(err);
@@ -318,7 +318,7 @@ app.get('https://glamoroussalon.onrender.com/api/user/bookings', (req, res) => {
     });
 });
 
-app.put('https://glamoroussalon.onrender.com/api/bookings/:id/cancel', authenticateToken, (req, res) => {
+app.put('/api/bookings/:id/cancel', authenticateToken, (req, res) => {
     // Check if the booking belongs to the user
     executeQuery('SELECT user_email FROM bookings WHERE id = ?', [req.params.id], (err, results) => {
         if (err) return res.status(500).send(err);
