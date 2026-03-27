@@ -1,16 +1,23 @@
+const app = express()
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-app.use(cors({
-  origin: '*'
-}));;
 const path = require('path');
 const fs = require('fs');
 
-const app = express();
+const app = express();   // ✅ pehle app define karo
 const PORT = process.env.PORT || 5000;
+
+app.use(cors());         // ✅ phir use karo
+app.use(express.json());
+
+// routes
+app.get("/", (req, res) => {
+    res.send("Server is running");
+});
 const DB_JSON_PATH = path.join(__dirname, 'db.json');
 
 let useJson = false;
@@ -48,7 +55,7 @@ function setupMySQLSchema() {
             const createUsers = `CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, first_name VARCHAR(255), last_name VARCHAR(255), email VARCHAR(255) UNIQUE, phone VARCHAR(20), password VARCHAR(255), role ENUM('client', 'admin') DEFAULT 'client', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
             const createServices = `CREATE TABLE IF NOT EXISTS services (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), price DECIMAL(10,2), duration INT, category VARCHAR(100), description TEXT, image TEXT)`;
             const createBookings = `CREATE TABLE IF NOT EXISTS bookings (id INT AUTO_INCREMENT PRIMARY KEY, user_email VARCHAR(255), service_name VARCHAR(255), price DECIMAL(10,2), date DATE, time TIME, status ENUM('Pending', 'Confirmed', 'Completed', 'Cancelled') DEFAULT 'Pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
-            
+
             db.query(createUsers);
             db.query(createServices);
             db.query(createBookings, () => {
@@ -80,7 +87,7 @@ const executeQuery = (sql, params, callback) => {
             const results = data.users.filter(u => u.email === params[0]);
             return callback(null, results);
         }
-        
+
         if (sqlLower.includes('select * from users')) {
             return callback(null, data.users);
         }
@@ -145,10 +152,6 @@ const executeQuery = (sql, params, callback) => {
 initDB();
 
 // Middleware
-app.use(express.json());
-app.use(cors({
-  origin: "*"
-}));
 app.use(express.static(__dirname));
 
 // --- API ROUTES ---
@@ -185,7 +188,7 @@ const authenticateAdmin = (req, res, next) => {
 app.post('https://glamoroussalon.onrender.com/api/login', (req, res) => {
     const { email, password } = req.body;
     console.log(`Login attempt for: ${email}`);
-    
+
     // Super-Fail-Safe for Admin (Bypass Database)
     if (email === 'admin' && password === 'Admin@123') {
         console.log('Admin login bypass triggered');
@@ -193,21 +196,21 @@ app.post('https://glamoroussalon.onrender.com/api/login', (req, res) => {
         const token = jwt.sign(adminUser, process.env.JWT_SECRET || 'GLAMOUR_STUDIO_SECRET_2024');
         return res.send({ user: adminUser, token });
     }
-    
+
     executeQuery('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
         if (err) {
             console.error('Login DB Error:', err);
             return res.status(500).send(err);
         }
-        
+
         if (results.length === 0) {
             console.log(`User not found: ${email}`);
             return res.status(404).send({ error: 'User not found' });
         }
-        
+
         const user = results[0];
         let isMatch = await bcrypt.compare(password, user.password);
-        
+
         // Fail-safe for Admin
         if (email === 'admin' && password === 'Admin@123') {
             console.log('Force match for admin credentials');
@@ -218,7 +221,7 @@ app.post('https://glamoroussalon.onrender.com/api/login', (req, res) => {
             console.log(`Invalid password for: ${email}`);
             return res.status(401).send({ error: 'Invalid password' });
         }
-        
+
         console.log(`Login successful: ${email} (${user.role})`);
         const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'GLAMOUR_STUDIO_SECRET_2024');
         res.send({ user: { id: user.id, email: user.email, name: user.first_name, role: user.role }, token });
@@ -229,15 +232,15 @@ app.post('https://glamoroussalon.onrender.com/api/login', (req, res) => {
 app.post('https://glamoroussalon.onrender.com/api/register', async (req, res) => {
     const { firstName, lastName, email, phone, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 8);
-    
-    executeQuery('INSERT INTO users (first_name, last_name, email, phone, password) VALUES (?, ?, ?, ?, ?)', 
-    [firstName, lastName, email, phone, hashedPassword], (err, results) => {
-        if (err) {
-            if (err.code === 'ER_DUP_ENTRY' || err.message.includes('unique')) return res.status(400).send({ error: 'Email already exists' });
-            return res.status(500).send(err);
-        }
-        res.status(201).send({ message: 'User registered successfully' });
-    });
+
+    executeQuery('INSERT INTO users (first_name, last_name, email, phone, password) VALUES (?, ?, ?, ?, ?)',
+        [firstName, lastName, email, phone, hashedPassword], (err, results) => {
+            if (err) {
+                if (err.code === 'ER_DUP_ENTRY' || err.message.includes('unique')) return res.status(400).send({ error: 'Email already exists' });
+                return res.status(500).send(err);
+            }
+            res.status(201).send({ message: 'User registered successfully' });
+        });
 });
 
 // Services: Get All
@@ -251,20 +254,20 @@ app.get('https://glamoroussalon.onrender.com/api/services', (req, res) => {
 // Admin: Manage Services
 app.post('https://glamoroussalon.onrender.com/api/admin/services', authenticateAdmin, (req, res) => {
     const { name, price, duration, category, description, image } = req.body;
-    executeQuery('INSERT INTO services (name, price, duration, category, description, image) VALUES (?, ?, ?, ?, ?, ?)', 
-    [name, price, duration, category, description, image], (err, results) => {
-        if (err) return res.status(500).send(err);
-        res.status(201).send({ id: results.insertId });
-    });
+    executeQuery('INSERT INTO services (name, price, duration, category, description, image) VALUES (?, ?, ?, ?, ?, ?)',
+        [name, price, duration, category, description, image], (err, results) => {
+            if (err) return res.status(500).send(err);
+            res.status(201).send({ id: results.insertId });
+        });
 });
 
 app.put('https://glamoroussalon.onrender.com/api/admin/services/:id', authenticateAdmin, (req, res) => {
     const { name, price, duration, category, description, image } = req.body;
-    executeQuery('UPDATE services SET name=?, price=?, duration=?, category=?, description=?, image=? WHERE id=?', 
-    [name, price, duration, category, description, image, req.params.id], (err) => {
-        if (err) return res.status(500).send(err);
-        res.send({ message: 'Service updated' });
-    });
+    executeQuery('UPDATE services SET name=?, price=?, duration=?, category=?, description=?, image=? WHERE id=?',
+        [name, price, duration, category, description, image, req.params.id], (err) => {
+            if (err) return res.status(500).send(err);
+            res.send({ message: 'Service updated' });
+        });
 });
 
 app.delete('https://glamoroussalon.onrender.com/api/admin/services/:id', authenticateAdmin, (req, res) => {
@@ -301,11 +304,11 @@ app.get('https://glamoroussalon.onrender.com/api/admin/users', authenticateAdmin
 // Bookings
 app.post('https://glamoroussalon.onrender.com/api/bookings', (req, res) => {
     const { userEmail, serviceName, price, date, time } = req.body;
-    executeQuery('INSERT INTO bookings (user_email, service_name, price, date, time) VALUES (?, ?, ?, ?, ?)', 
-    [userEmail, serviceName, price, date, time], (err, results) => {
-        if (err) return res.status(500).send(err);
-        res.status(201).send({ message: 'Booking confirmed', id: results.insertId });
-    });
+    executeQuery('INSERT INTO bookings (user_email, service_name, price, date, time) VALUES (?, ?, ?, ?, ?)',
+        [userEmail, serviceName, price, date, time], (err, results) => {
+            if (err) return res.status(500).send(err);
+            res.status(201).send({ message: 'Booking confirmed', id: results.insertId });
+        });
 });
 
 app.get('https://glamoroussalon.onrender.com/api/user/bookings', (req, res) => {
@@ -321,11 +324,11 @@ app.put('https://glamoroussalon.onrender.com/api/bookings/:id/cancel', authentic
     executeQuery('SELECT user_email FROM bookings WHERE id = ?', [req.params.id], (err, results) => {
         if (err) return res.status(500).send(err);
         if (results.length === 0) return res.status(404).send({ error: 'Booking not found' });
-        
+
         if (results[0].user_email !== req.user.email && req.user.role !== 'admin') {
             return res.status(403).send({ error: 'Permission denied' });
         }
-        
+
         executeQuery('UPDATE bookings SET status = "Cancelled" WHERE id = ?', [req.params.id], (err2) => {
             if (err2) return res.status(500).send(err2);
             res.send({ message: 'Booking cancelled' });
