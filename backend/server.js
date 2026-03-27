@@ -1,5 +1,5 @@
-const app = express()
 require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
@@ -8,13 +8,12 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
 
-const app = express();   // ✅ pehle app define karo
+const app = express();   // ✅ ONLY ONCE
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());         // ✅ phir use karo
+app.use(cors());
 app.use(express.json());
 
-// routes
 app.get("/", (req, res) => {
     res.send("Server is running");
 });
