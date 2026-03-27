@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - Glamorous Studio</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:wght@700;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --pink-primary: #ff2d75;
+            --black-rich: #0a0a0b;
+            --glass: rgba(255, 255, 255, 0.82);
+            --radius: 30px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--black-rich);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .ambient-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: radial-gradient(circle at 70% 20%, #2d0a1a 0%, transparent 45%),
+                radial-gradient(circle at 10% 80%, #1a150a 0%, transparent 45%);
+        }
+
+        .auth-card {
+            background: var(--glass);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 460px;
+            padding: 60px 45px;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.6);
+            animation: cardScaleIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes cardScaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+
+        .header i {
+            font-size: 44px;
+            color: var(--pink-primary);
+            margin-bottom: 25px;
+            display: block;
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display';
+            font-size: 38px;
+            color: var(--black-rich);
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #555;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--black-rich);
+            margin-bottom: 10px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 18px 20px;
+            border-radius: 15px;
+            border: 1.5px solid rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.6);
+            font-family: inherit;
+            font-size: 16px;
+            color: var(--black-rich);
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--pink-primary);
+            background: white;
+            box-shadow: 0 10px 25px rgba(255, 45, 117, 0.08);
+        }
+
+        .pass-toggle {
+            position: absolute;
+            right: 20px;
+            top: 48px;
+            cursor: pointer;
+            color: #888;
+            font-size: 18px;
+        }
+
+        .pass-toggle:hover {
+            color: var(--pink-primary);
+        }
+
+        .btn-luxury {
+            width: 100%;
+            padding: 20px;
+            border-radius: 50px;
+            border: none;
+            background: var(--black-rich);
+            color: white;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.4s;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn-luxury:hover {
+            background: var(--pink-primary);
+            transform: translateY(-4px);
+            box-shadow: 0 15px 30px rgba(255, 45, 117, 0.25);
+        }
+
+        .footer-links {
+            text-align: center;
+            margin-top: 35px;
+            font-size: 15px;
+            color: #555;
+        }
+
+        .footer-links a {
+            color: var(--pink-primary);
+            font-weight: 700;
+            text-decoration: none;
+            border-bottom: 2px solid transparent;
+            transition: 0.3s;
+        }
+
+        .footer-links a:hover {
+            border-bottom-color: var(--pink-primary);
+        }
+
+        .admin-entry {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+        }
+
+        .admin-entry a {
+            color: var(--black-rich);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .alert {
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 14px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .alert-error {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fee2e2;
+        }
+
+        .alert-success {
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #d1fae5;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ambient-bg"></div>
+
+    <div class="auth-card">
+        <div class="header">
+            <a href="index.html"><i class="fas fa-spa"></i></a>
+            <h1>Welcome Back</h1>
+            <p>Continue your luxury journey</p>
+        </div>
+
+        <div id="alertBox" class="alert"></div>
+
+        <form onsubmit="handleLogin(event)">
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" id="email" required placeholder="name@luxury.com">
+            </div>
+
+            <div class="input-group">
+                <label>Master Password</label>
+                <input type="password" id="password" required placeholder="••••••••">
+                <i class="fas fa-eye pass-toggle" onclick="togglePass('password', this)"></i>
+            </div>
+
+            <button type="submit" class="btn-luxury">Login <i class="fas fa-sign-in-alt"></i></button>
+
+            <div class="footer-links">
+                New to the Studio? <a href="register.html">Become a member</a>
+            </div>
+
+            <div class="admin-entry">
+                Internal Access Only? <a href="admin-login.html">Admin Portal</a>
+            </div>
+        </form>
+    </div>
+
+   <script>
+const BASE_URL = "https://glamoroussalon.onrender.com";
+
+async function loginUser() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  try {
+    const res = await fetch(`${BASE_URL}/api/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert("Login successful");
+      window.location.href = "dashboard.html";
+    } else {
+      alert(data.message || "Login failed");
+    }
+
+  } catch (error) {
+    console.error(error);
+    alert("Connection to server failed. Please check your network.");
+  }
+}
+</script>
+</body>
+
+</html>

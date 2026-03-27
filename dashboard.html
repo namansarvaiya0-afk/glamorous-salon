@@ -1,0 +1,418 @@
+<title>My Sanctuary - Glamorous Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --pink-primary: #ff2d75;
+            --pink-dark: #d4145a;
+            --pink-light: #fff0f5;
+            --gold-primary: #d4af37;
+            --gold-light: #fdf6e3;
+            --black-rich: #0a0a0b;
+            --text-dark: #1f2937;
+            --text-muted: #6b7280;
+            --bg-light: #fcfafa;
+            --glass: rgba(255, 255, 255, 0.85);
+            --shadow-premium: 0 20px 40px rgba(0, 0, 0, 0.05);
+            --radius-lg: 24px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg-light); color: var(--text-dark); line-height: 1.6; }
+
+        .navbar {
+            background: white; padding: 20px 60px;
+            display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .logo { font-family: 'Playfair Display'; font-size: 28px; font-weight: 900; color: var(--black-rich); text-decoration: none; display: flex; align-items: center; gap: 10px; }
+        .logo i { color: var(--pink-primary); }
+
+        .container { max-width: 1300px; margin: 0 auto; padding: 40px 20px; }
+
+        .welcome-section { margin-bottom: 50px; }
+        .welcome-section h1 { font-family: 'Playfair Display'; font-size: 42px; margin-bottom: 10px; }
+        .welcome-section p { font-size: 18px; color: var(--text-muted); }
+
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-bottom: 50px; }
+        .stat-card {
+            background: white; padding: 30px; border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-premium); display: flex; flex-direction: column; gap: 10px;
+            transition: transform 0.3s ease;
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-icon { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 10px; }
+        .stat-icon.pink { background: var(--pink-light); color: var(--pink-primary); }
+        .stat-icon.gold { background: var(--gold-light); color: var(--gold-primary); }
+        .stat-val { font-size: 32px; font-weight: 700; color: var(--black-rich); }
+        .stat-label { font-size: 14px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 600; }
+
+        .dashboard-layout { display: grid; grid-template-columns: 2.2fr 1fr; gap: 40px; }
+        
+        .section-card { background: white; border-radius: 30px; padding: 40px; box-shadow: var(--shadow-premium); }
+        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px; }
+        .section-header h2 { font-family: 'Playfair Display'; font-size: 28px; }
+
+        /* Booking Items */
+        .booking-card {
+            background: var(--bg-light); border-radius: 20px; padding: 25px;
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; transition: all 0.3s ease; border: 1px solid transparent;
+        }
+        .booking-card:hover { background: white; border-color: var(--pink-primary); box-shadow: 0 10px 20px rgba(255, 45, 117, 0.05); }
+        
+        .b-main { display: flex; gap: 20px; align-items: center; }
+        .b-icon { width: 60px; height: 60px; border-radius: 15px; background: white; display: flex; align-items: center; justify-content: center; font-size: 24px; color: var(--pink-primary); box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+        .b-details h4 { font-size: 18px; margin-bottom: 5px; color: var(--black-rich); }
+        .b-details p { font-size: 14px; color: var(--text-muted); display: flex; align-items: center; gap: 15px; }
+        
+        .status-pill { padding: 6px 16px; border-radius: 50px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+        .status-confirmed { background: #ecfdf5; color: #059669; }
+        .status-pending { background: #fffbeb; color: #d97706; }
+        .status-cancelled { background: #fef2f2; color: #dc2626; }
+
+        /* User Profile */
+        .profile-box { text-align: center; }
+        .p-avatar { 
+            width: 110px; height: 110px; border-radius: 50%; 
+            background: linear-gradient(135deg, var(--pink-primary), var(--gold-primary));
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 25px; font-size: 42px; color: white; font-weight: 700;
+            box-shadow: 0 10px 30px rgba(255, 45, 117, 0.2);
+            border: 4px solid white;
+        }
+        .p-info h3 { font-family: 'Playfair Display'; font-size: 26px; margin-bottom: 5px; }
+        .p-info p { color: var(--text-muted); margin-bottom: 30px; }
+        
+        .p-meta { text-align: left; background: var(--bg-light); border-radius: 20px; padding: 25px; }
+        .m-item { display: flex; align-items: center; gap: 15px; padding: 12px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        .m-item:last-child { border-bottom: none; }
+        .m-item i { color: var(--pink-primary); width: 20px; }
+        .m-item span { font-weight: 500; font-size: 14px; }
+
+        .btn-luxury {
+            background: var(--black-rich); color: white; border: none;
+            padding: 14px 28px; border-radius: 50px; font-weight: 600;
+            cursor: pointer; text-decoration: none; transition: all 0.3s ease;
+            display: inline-flex; align-items: center; gap: 10px;
+        }
+        .btn-luxury:hover { background: var(--pink-primary); transform: translateY(-2px); }
+        
+        .btn-outline {
+            border: 2.5px solid var(--black-rich); background: transparent; color: var(--black-rich);
+            padding: 12px 24px; border-radius: 50px; font-weight: 600; cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-outline:hover { background: var(--black-rich); color: white; }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4); 
+            backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center;
+            z-index: 2000; padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            background: white; border-radius: 35px; width: 100%; max-width: 650px;
+            padding: 50px; position: relative; max-height: 90vh; overflow-y: auto;
+            animation: modalIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .empty-state { text-align: center; padding: 60px 0; }
+        .empty-state i { font-size: 64px; color: #e5e7eb; margin-bottom: 25px; }
+        .empty-state h3 { font-family: 'Playfair Display'; font-size: 24px; margin-bottom: 15px; }
+
+        @media (max-width: 1024px) {
+            .dashboard-layout { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .navbar { padding: 20px 30px; }
+        }
+        @media (max-width: 640px) {
+            .stats-row { grid-template-columns: 1fr; }
+            .welcome-section h1 { font-size: 32px; }
+            .section-card { padding: 25px; }
+            .booking-card { flex-direction: column; align-items: flex-start; gap: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">
+            <i class="fas fa-spa"></i>
+            <span>Glamorous</span>
+        </a>
+        <div style="display: flex; gap: 25px; align-items: center;">
+            <a href="services.html" class="btn-luxury" style="padding: 10px 20px; font-size: 14px;">Book Now</a>
+            <button onclick="logout()" class="btn-outline" style="padding: 8px 18px; font-size: 14px;">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h1>Welcome to your Sanctuary, <span id="welcomeName">User</span></h1>
+            <p>Your journey to elegance and refined beauty starts here.</p>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon pink"><i class="fas fa-calendar-check"></i></div>
+                <div class="stat-val" id="totalBookings">0</div>
+                <div class="stat-label">Reservations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon gold"><i class="fas fa-magic"></i></div>
+                <div class="stat-val" id="upcomingBookings">0</div>
+                <div class="stat-label">Upcoming Sessions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon pink"><i class="fas fa-gem"></i></div>
+                <div class="stat-val" id="completedBookings">0</div>
+                <div class="stat-label">Mastered Looks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon gold"><i class="fas fa-award"></i></div>
+                <div class="stat-val" id="totalSpent">₹0</div>
+                <div class="stat-label">Elegance Invested</div>
+            </div>
+        </div>
+
+        <div class="dashboard-layout">
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>Live Sessions</h2>
+                    <a href="services.html?tab=combo" style="color: var(--pink-primary); font-weight: 600; text-decoration: none;">Explore Experiences →</a>
+                </div>
+                <div id="bookingsList">
+                    <!-- Dynamic -->
+                </div>
+            </div>
+
+            <div class="section-card profile-box">
+                <div class="p-avatar" id="profileAvatar">U</div>
+                <div class="p-info">
+                    <h3 id="profileName">Elena Gilbert</h3>
+                    <p id="profileEmail">elena@luxury.com</p>
+                </div>
+                <div class="p-meta">
+                    <div class="m-item">
+                        <i class="fas fa-phone-alt"></i>
+                        <span id="profilePhone">+91 Private</span>
+                    </div>
+                    <div class="m-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="memberSince">Member since Winter 2024</span>
+                    </div>
+                    <div class="m-item">
+                        <i class="fas fa-fingerprint"></i>
+                        <span>Premium Client Status</span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 35px; display: grid; gap: 15px;">
+                    <button class="btn-outline" onclick="openModal('historyModal')">Past Experiences</button>
+                    <button class="btn-outline" onclick="openModal('referModal')">Invite a Guest</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeModal('historyModal')"><i class="fas fa-times"></i></button>
+            <h2 style="font-family: 'Playfair Display'; margin-bottom: 30px;">Historical Eras</h2>
+            <div id="historyList"></div>
+        </div>
+    </div>
+
+    <!-- Refer Modal -->
+    <div class="modal-overlay" id="referModal">
+        <div class="modal-card">
+            <button class="modal-close" onclick="closeModal('referModal')"><i class="fas fa-times"></i></button>
+            <h2 style="font-family: 'Playfair Display'; margin-bottom: 10px;">Gift an Experience</h2>
+            <p style="color: var(--text-muted); margin-bottom: 35px;">Share the gift of beauty with those who matter most.</p>
+            
+            <div style="background: var(--bg-light); padding: 30px; border-radius: 20px; text-align: center; margin-bottom: 30px;">
+                <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 15px;">Your Invitation Code</div>
+                <div style="font-size: 32px; font-weight: 800; letter-spacing: 5px; color: var(--pink-primary);">GLAMOUR-X</div>
+            </div>
+
+            <div style="display: grid; gap: 20px;">
+                <input type="text" placeholder="Guest Name" style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #e5e7eb;">
+                <input type="email" placeholder="Guest Email" style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #e5e7eb;">
+                <button class="btn-luxury" style="justify-content: center; padding: 18px;">Deliver Invitation</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const icons = {
+            'Architectural Cut': 'fa-cut',
+            'Molecular Facial': 'fa-magic',
+            'Signature Balayage': 'fa-palette',
+            'Bridal Artistry': 'fa-crown',
+            'Gentleman\'s Grooming': 'fa-user-tie',
+            'Organic Head Spa': 'fa-spa',
+            'The Royal Transformation': 'fa-gem',
+            'Zen Garden Therapy': 'fa-leaf',
+            'Artisan Bridal Glow': 'fa-wand-magic-sparkles',
+            'Molecular Skin Renewal': 'fa-microscope',
+            'Deep Tissue Serenity': 'fa-hands-holding'
+        };
+
+        function loadDashboard() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Set Profile Header
+            const firstName = user.name ? user.name.split(' ')[0] : 'Guest';
+            document.getElementById('welcomeName').textContent = firstName;
+            document.getElementById('profileAvatar').textContent = firstName.charAt(0);
+            document.getElementById('profileName').textContent = user.name;
+            document.getElementById('profileEmail').textContent = user.email;
+            document.getElementById('profilePhone').textContent = user.phone || '+91 Private';
+
+            renderBookings();
+        }
+
+        async function renderBookings() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) return;
+
+            try {
+                const response = await fetch(`https://glamoroussalon-1.onrender.com/api/user/bookings?email=${user.email}`);
+                if (!response.ok) throw new Error('Fetch failed');
+                
+                const userBookings = await response.json();
+                
+                // Update Stats
+                document.getElementById('totalBookings').textContent = userBookings.length;
+                document.getElementById('upcomingBookings').textContent = userBookings.filter(b => b.status === 'Confirmed' || b.status === 'Pending').length;
+                document.getElementById('completedBookings').textContent = userBookings.filter(b => b.status === 'Completed').length;
+                
+                const totalSpent = userBookings.reduce((sum, b) => sum + parseFloat(b.price || 0), 0);
+                document.getElementById('totalSpent').textContent = '₹' + totalSpent.toLocaleString();
+
+                const list = document.getElementById('bookingsList');
+                if (userBookings.length === 0) {
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-day"></i>
+                            <h3>Your schedule is clear</h3>
+                            <p>Begin your transformation by booking a signature experience.</p>
+                            <a href="services.html" class="btn-primary">Book a Session</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                list.innerHTML = userBookings.map(b => `
+                    <div class="booking-card">
+                        <div class="b-main">
+                            <div class="b-icon"><i class="fas ${icons[b.service_name] || icons[b.service] || 'fa-spa'}"></i></div>
+                            <div class="b-details">
+                                <h4>${b.service_name || b.service}</h4>
+                                <p>
+                                    <span><i class="far fa-calendar"></i> ${new Date(b.date).toLocaleDateString()}</span>
+                                    <span><i class="far fa-clock"></i> ${b.time}</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-weight: 700; margin-bottom: 8px; font-size: 18px;">₹${b.price}</div>
+                            <span class="status-pill status-${b.status.toLowerCase()}">${b.status}</span>
+                            ${(b.status === 'Pending' || b.status === 'Confirmed') ? `
+                                <div style="margin-top: 15px;">
+                                    <button onclick="cancelBooking(${b.id})" class="btn-outline" style="padding: 6px 12px; font-size: 11px; border-width: 1.5px; border-color: #dc2626; color: #dc2626;">Cancel Reservation</button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Also update history list if modal is open
+                const historyList = document.getElementById('historyList');
+                if (historyList) {
+                    historyList.innerHTML = userBookings.map(b => `
+                        <div class="booking-card" style="margin-bottom: 15px; padding: 15px 20px;">
+                            <div class="b-main">
+                                <div class="b-icon" style="width: 45px; height: 45px; font-size: 18px;"><i class="fas ${icons[b.service_name] || icons[b.service] || 'fa-spa'}"></i></div>
+                                <div>
+                                    <div style="font-weight: 600;">${b.service_name || b.service}</div>
+                                    <div style="font-size: 12px; color: var(--text-muted);">${new Date(b.date).toLocaleDateString()}</div>
+                                </div>
+                            </div>
+                            <div class="status-pill status-${b.status.toLowerCase()}" style="font-size: 10px;">${b.status}</div>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            if (id === 'historyModal') renderHistory();
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function renderHistory() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            const allBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+            const history = allBookings.filter(b => b.userEmail === user.email);
+
+            const list = document.getElementById('historyList');
+            list.innerHTML = history.length ? history.map(b => `
+                <div class="booking-card" style="margin-bottom: 15px; padding: 15px 20px;">
+                    <div class="b-main">
+                        <div class="b-icon" style="width: 45px; height: 45px; font-size: 18px;"><i class="fas ${icons[b.service] || 'fa-spa'}"></i></div>
+                        <div>
+                            <div style="font-weight: 600;">${b.service}</div>
+                            <div style="font-size: 12px; color: var(--text-muted);">${b.date}</div>
+                        </div>
+                    </div>
+                    <div class="status-pill status-${b.status.toLowerCase()}" style="font-size: 10px;">${b.status}</div>
+                </div>
+            `).join('') : '<p style="text-align: center; color: var(--text-muted);">No history recorded.</p>';
+        }
+
+        async function cancelBooking(id) {
+            if (!confirm('Are you certain you wish to cancel this luxury experience?')) return;
+            
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`https://glamoroussalon-1.onrender.com/api/bookings/${id}/cancel`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    renderBookings();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Cancellation failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDashboard);
+    </script>
+</body>
+</html>

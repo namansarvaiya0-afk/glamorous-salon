@@ -1,0 +1,111 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "first_name": "Salon",
+      "last_name": "Admin",
+      "email": "admin",
+      "password": "$2a$10$T5nI.z9gMi94f6fjcRxwxyU8KNdONWa/nzaKtuWgyR",
+      "role": "admin",
+      "created_at": "2026-03-25T10:56:53Z"
+    },
+    {
+      "id": 1774416756376,
+      "first_name": "Naman",
+      "last_name": "Sarvaiya1",
+      "email": "namansarvaiya0@gmail.com",
+      "phone": "9769894463",
+      "password": "$2a$08$RqyLIAYoY8QnQuhhEiYzIuHaH9nNZZX1aGrTihsIHW41KJPvq2d3O",
+      "role": "client",
+      "created_at": "2026-03-25T05:32:36.376Z"
+    },
+    {
+      "id": 1774419096045,
+      "first_name": "Naman",
+      "last_name": "Sarvaiya1",
+      "email": "namansarvaiya0@gmail.com",
+      "phone": "9769894436",
+      "password": "$2a$08$pNztTpKbWYRzo5JTXev.4e2pnYMB9yWvDyL.1tCi1dRSr/d900ZM2",
+      "role": "client",
+      "created_at": "2026-03-25T06:11:36.045Z"
+    }
+  ],
+  "services": [
+    {
+      "id": 1,
+      "name": "Architectural Cut",
+      "price": 1200,
+      "duration": 45,
+      "category": "Artistry",
+      "description": "Elite treatment using our signature techniques.",
+      "image": "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&fit=crop"
+    },
+    {
+      "id": 2,
+      "name": "Molecular Facial",
+      "price": 2500,
+      "duration": 60,
+      "category": "Therapy",
+      "description": "Advanced facials using cellular-level technology.",
+      "image": "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&fit=crop"
+    },
+    {
+      "id": 3,
+      "name": "Signature Balayage",
+      "price": 4500,
+      "duration": 120,
+      "category": "Signature",
+      "description": "The definition of luxury color.",
+      "image": "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&fit=crop"
+    },
+    {
+      "id": 4,
+      "name": "Bridal Artistry",
+      "price": 5000,
+      "duration": 180,
+      "category": "Artistry",
+      "description": "Red-carpet ready makeup for your special moments.",
+      "image": "https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=600&fit=crop"
+    },
+    {
+      "id": 5,
+      "name": "Organic Head Spa",
+      "price": 1800,
+      "duration": 60,
+      "category": "Therapy",
+      "description": "Organic, cruelty-free formulas that nourish.",
+      "image": "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=600&fit=crop"
+    },
+    {
+      "id": 6,
+      "name": "Premium Gold Facial",
+      "price": 3000,
+      "duration": 90,
+      "category": "Signature",
+      "description": "24K gold-infused facial for the ultimate radiance.",
+      "image": "https://images.unsplash.com/photo-1512290923902-8a9f81dc2069?w=600&fit=crop"
+    }
+  ],
+  "bookings": [
+    {
+      "id": 1774419139961,
+      "user_email": "namansarvaiya0@gmail.com",
+      "service_name": "Custom Experience",
+      "price": 1200,
+      "date": "2026-03-25",
+      "time": "10:00 AM",
+      "status": "Confirmed",
+      "created_at": "2026-03-25T06:12:19.961Z"
+    },
+    {
+      "id": 1774424068466,
+      "user_email": "namansarvaiya0@gmail.com",
+      "service_name": "Custom Experience",
+      "price": 1200,
+      "date": "2026-03-25",
+      "time": "04:00 PM",
+      "status": "Confirmed",
+      "created_at": "2026-03-25T07:34:28.466Z"
+    }
+  ]
+}

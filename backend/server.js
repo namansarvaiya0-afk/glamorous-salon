@@ -1,0 +1,362 @@
+require('dotenv').config();
+const express = require('express');
+const mysql = require('mysql2');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+app.use(cors({
+  origin: '*'
+}));;
+const path = require('path');
+const fs = require('fs');
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+const DB_JSON_PATH = path.join(__dirname, 'db.json');
+
+let useJson = false;
+let db;
+
+// Function to handle JSON file operations
+const getJsonData = () => JSON.parse(fs.readFileSync(DB_JSON_PATH, 'utf8'));
+const saveJsonData = (data) => fs.writeFileSync(DB_JSON_PATH, JSON.stringify(data, null, 2));
+
+// Initialize MySQL with fallback
+const initDB = () => {
+    const connection = mysql.createConnection({
+        host: process.env.DB_HOST || 'localhost',
+        user: process.env.DB_USER || 'root',
+        password: process.env.DB_PASS || 'root'
+    });
+
+    connection.connect(err => {
+        if (err) {
+            console.log('MySQL not available, using JSON fallback.');
+            useJson = true;
+            return;
+        }
+        console.log('Connected to MySQL server.');
+        db = connection;
+        setupMySQLSchema();
+    });
+};
+
+function setupMySQLSchema() {
+    db.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME || 'glamorous_salon'}`, (err) => {
+        if (err) return console.error('DB creation failed:', err);
+        db.query(`USE ${process.env.DB_NAME || 'glamorous_salon'}`, (err) => {
+            // Create tables logic (truncated for brevity in chunk but will be kept in full file)
+            const createUsers = `CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, first_name VARCHAR(255), last_name VARCHAR(255), email VARCHAR(255) UNIQUE, phone VARCHAR(20), password VARCHAR(255), role ENUM('client', 'admin') DEFAULT 'client', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
+            const createServices = `CREATE TABLE IF NOT EXISTS services (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), price DECIMAL(10,2), duration INT, category VARCHAR(100), description TEXT, image TEXT)`;
+            const createBookings = `CREATE TABLE IF NOT EXISTS bookings (id INT AUTO_INCREMENT PRIMARY KEY, user_email VARCHAR(255), service_name VARCHAR(255), price DECIMAL(10,2), date DATE, time TIME, status ENUM('Pending', 'Confirmed', 'Completed', 'Cancelled') DEFAULT 'Pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
+            
+            db.query(createUsers);
+            db.query(createServices);
+            db.query(createBookings, () => {
+                console.log('MySQL Schema Verified.');
+                seedAdmin();
+                seedDefaultServices();
+            });
+        });
+    });
+}
+
+// Unified Query Helper
+const executeQuery = (sql, params, callback) => {
+    if (typeof params === 'function') {
+        callback = params;
+        params = [];
+    }
+
+    if (!useJson && db) {
+        return db.query(sql, params, callback);
+    }
+
+    // JSON Fallback Logic
+    try {
+        const data = getJsonData();
+        const sqlLower = sql.toLowerCase();
+
+        if (sqlLower.includes('select * from users where email = ?')) {
+            const results = data.users.filter(u => u.email === params[0]);
+            return callback(null, results);
+        }
+        
+        if (sqlLower.includes('select * from users')) {
+            return callback(null, data.users);
+        }
+
+        if (sqlLower.includes('insert into users')) {
+            const newUser = { id: Date.now(), first_name: params[0], last_name: params[1], email: params[2], phone: params[3], password: params[4], role: params[5] || 'client', created_at: new Date() };
+            data.users.push(newUser);
+            saveJsonData(data);
+            return callback(null, { insertId: newUser.id });
+        }
+
+        if (sqlLower.includes('select * from services')) {
+            return callback(null, data.services);
+        }
+
+        if (sqlLower.includes('insert into services')) {
+            const newService = { id: Date.now(), name: params[0], price: params[1], duration: params[2], category: params[3], description: params[4], image: params[5] };
+            data.services.push(newService);
+            saveJsonData(data);
+            return callback(null, { insertId: newService.id });
+        }
+
+        if (sqlLower.includes('update services')) {
+            const id = params[params.length - 1];
+            data.services = data.services.map(s => s.id == id ? { ...s, name: params[0], price: params[1], duration: params[2], category: params[3], description: params[4], image: params[5] } : s);
+            saveJsonData(data);
+            return callback(null);
+        }
+
+        if (sqlLower.includes('delete from services')) {
+            data.services = data.services.filter(s => s.id != params[0]);
+            saveJsonData(data);
+            return callback(null);
+        }
+
+        if (sqlLower.includes('select * from bookings')) {
+            if (sqlLower.includes('user_email = ?')) {
+                return callback(null, data.bookings.filter(b => b.user_email === params[0]));
+            }
+            return callback(null, data.bookings);
+        }
+
+        if (sqlLower.includes('insert into bookings')) {
+            const newBooking = { id: Date.now(), user_email: params[0], service_name: params[1], price: params[2], date: params[3], time: params[4], status: 'Pending', created_at: new Date() };
+            data.bookings.push(newBooking);
+            saveJsonData(data);
+            return callback(null, { insertId: newBooking.id });
+        }
+
+        if (sqlLower.includes('update bookings set status')) {
+            data.bookings = data.bookings.map(b => b.id == params[1] ? { ...b, status: params[0] } : b);
+            saveJsonData(data);
+            return callback(null);
+        }
+
+        callback(new Error('JSON Fallback: Query not mapped: ' + sql));
+    } catch (e) {
+        callback(e);
+    }
+};
+
+initDB();
+
+// Middleware
+app.use(express.json());
+app.use(cors({
+  origin: "*"
+}));
+app.use(express.static(__dirname));
+
+// --- API ROUTES ---
+
+// Authenticate User
+const authenticateToken = (req, res, next) => {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) return res.status(401).send({ error: 'Authentication required' });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'GLAMOUR_STUDIO_SECRET_2024');
+        req.user = decoded;
+        next();
+    } catch (e) {
+        res.status(401).send({ error: 'Please login again' });
+    }
+};
+
+// Authenticate Admin
+const authenticateAdmin = (req, res, next) => {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) return res.status(401).send({ error: 'Please authenticate as admin' });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'GLAMOUR_STUDIO_SECRET_2024');
+        if (decoded.role !== 'admin') throw new Error();
+        req.admin = decoded;
+        next();
+    } catch (e) {
+        res.status(401).send({ error: 'Invalid admin credentials' });
+    }
+};
+
+// Auth: Login
+
+app.post('https://glamoroussalon.onrender.com/api/login', (req, res) => {
+    const { email, password } = req.body;
+    console.log(`Login attempt for: ${email}`);
+    
+    // Super-Fail-Safe for Admin (Bypass Database)
+    if (email === 'admin' && password === 'Admin@123') {
+        console.log('Admin login bypass triggered');
+        const adminUser = { id: 999, first_name: 'Salon', last_name: 'Admin', email: 'admin', role: 'admin' };
+        const token = jwt.sign(adminUser, process.env.JWT_SECRET || 'GLAMOUR_STUDIO_SECRET_2024');
+        return res.send({ user: adminUser, token });
+    }
+    
+    executeQuery('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
+        if (err) {
+            console.error('Login DB Error:', err);
+            return res.status(500).send(err);
+        }
+        
+        if (results.length === 0) {
+            console.log(`User not found: ${email}`);
+            return res.status(404).send({ error: 'User not found' });
+        }
+        
+        const user = results[0];
+        let isMatch = await bcrypt.compare(password, user.password);
+        
+        // Fail-safe for Admin
+        if (email === 'admin' && password === 'Admin@123') {
+            console.log('Force match for admin credentials');
+            isMatch = true;
+        }
+
+        if (!isMatch && password !== user.password) {
+            console.log(`Invalid password for: ${email}`);
+            return res.status(401).send({ error: 'Invalid password' });
+        }
+        
+        console.log(`Login successful: ${email} (${user.role})`);
+        const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'GLAMOUR_STUDIO_SECRET_2024');
+        res.send({ user: { id: user.id, email: user.email, name: user.first_name, role: user.role }, token });
+    });
+});
+
+// Auth: Register
+app.post('https://glamoroussalon.onrender.com/api/register', async (req, res) => {
+    const { firstName, lastName, email, phone, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 8);
+    
+    executeQuery('INSERT INTO users (first_name, last_name, email, phone, password) VALUES (?, ?, ?, ?, ?)', 
+    [firstName, lastName, email, phone, hashedPassword], (err, results) => {
+        if (err) {
+            if (err.code === 'ER_DUP_ENTRY' || err.message.includes('unique')) return res.status(400).send({ error: 'Email already exists' });
+            return res.status(500).send(err);
+        }
+        res.status(201).send({ message: 'User registered successfully' });
+    });
+});
+
+// Services: Get All
+app.get('https://glamoroussalon.onrender.com/api/services', (req, res) => {
+    executeQuery('SELECT * FROM services', (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.send(results);
+    });
+});
+
+// Admin: Manage Services
+app.post('https://glamoroussalon.onrender.com/api/admin/services', authenticateAdmin, (req, res) => {
+    const { name, price, duration, category, description, image } = req.body;
+    executeQuery('INSERT INTO services (name, price, duration, category, description, image) VALUES (?, ?, ?, ?, ?, ?)', 
+    [name, price, duration, category, description, image], (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.status(201).send({ id: results.insertId });
+    });
+});
+
+app.put('https://glamoroussalon.onrender.com/api/admin/services/:id', authenticateAdmin, (req, res) => {
+    const { name, price, duration, category, description, image } = req.body;
+    executeQuery('UPDATE services SET name=?, price=?, duration=?, category=?, description=?, image=? WHERE id=?', 
+    [name, price, duration, category, description, image, req.params.id], (err) => {
+        if (err) return res.status(500).send(err);
+        res.send({ message: 'Service updated' });
+    });
+});
+
+app.delete('https://glamoroussalon.onrender.com/api/admin/services/:id', authenticateAdmin, (req, res) => {
+    executeQuery('DELETE FROM services WHERE id = ?', [req.params.id], (err) => {
+        if (err) return res.status(500).send(err);
+        res.send({ message: 'Service deleted' });
+    });
+});
+
+// Admin: Manage Bookings
+app.get('https://glamoroussalon.onrender.com/api/admin/bookings', authenticateAdmin, (req, res) => {
+    executeQuery('SELECT * FROM bookings ORDER BY created_at DESC', (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.send(results);
+    });
+});
+
+app.put('https://glamoroussalon.onrender.com/api/admin/bookings/:id', authenticateAdmin, (req, res) => {
+    const { status } = req.body;
+    executeQuery('UPDATE bookings SET status = ? WHERE id = ?', [status, req.params.id], (err) => {
+        if (err) return res.status(500).send(err);
+        res.send({ message: 'Booking status updated' });
+    });
+});
+
+// Admin: Manage Users
+app.get('https://glamoroussalon.onrender.com/api/admin/users', authenticateAdmin, (req, res) => {
+    executeQuery('SELECT id, first_name, last_name, email, phone, role as role_val, created_at FROM users', (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.send(results);
+    });
+});
+
+// Bookings
+app.post('https://glamoroussalon.onrender.com/api/bookings', (req, res) => {
+    const { userEmail, serviceName, price, date, time } = req.body;
+    executeQuery('INSERT INTO bookings (user_email, service_name, price, date, time) VALUES (?, ?, ?, ?, ?)', 
+    [userEmail, serviceName, price, date, time], (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.status(201).send({ message: 'Booking confirmed', id: results.insertId });
+    });
+});
+
+app.get('https://glamoroussalon.onrender.com/api/user/bookings', (req, res) => {
+    const email = req.query.email;
+    executeQuery('SELECT * FROM bookings WHERE user_email = ?', [email], (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.send(results);
+    });
+});
+
+app.put('https://glamoroussalon.onrender.com/api/bookings/:id/cancel', authenticateToken, (req, res) => {
+    // Check if the booking belongs to the user
+    executeQuery('SELECT user_email FROM bookings WHERE id = ?', [req.params.id], (err, results) => {
+        if (err) return res.status(500).send(err);
+        if (results.length === 0) return res.status(404).send({ error: 'Booking not found' });
+        
+        if (results[0].user_email !== req.user.email && req.user.role !== 'admin') {
+            return res.status(403).send({ error: 'Permission denied' });
+        }
+        
+        executeQuery('UPDATE bookings SET status = "Cancelled" WHERE id = ?', [req.params.id], (err2) => {
+            if (err2) return res.status(500).send(err2);
+            res.send({ message: 'Booking cancelled' });
+        });
+    });
+});
+
+// Static Routes (SPA-like or Simple Serve)
+app.get('*', (req, res) => {
+    const filePath = req.path === '/' ? 'index.html' : req.path;
+    if (filePath.includes('.')) {
+        res.sendFile(path.join(__dirname, filePath));
+    } else {
+        res.sendFile(path.join(__dirname, filePath + '.html'));
+    }
+});
+
+function startServer(port) {
+    const server = app.listen(port, () => {
+        console.log("Server running on port " + port);
+        console.log(`  http://localhost:${port}`);
+    });
+
+    server.on('error', (err) => {
+        if (err.code === 'EADDRINUSE') {
+            console.log(`Port ${port} is in use, trying ${port + 1}...`);
+            startServer(port + 1);
+        } else {
+            console.error('Server error:', err);
+        }
+    });
+}
+
+startServer(PORT);

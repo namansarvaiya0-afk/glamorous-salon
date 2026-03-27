@@ -1,0 +1,313 @@
+    <title>Glamorous Studio Salon | Luxury Beauty & Spa</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --pink-primary: #e91e63;
+            --pink-soft: #ff85a1;
+            --gold-primary: #d4af37;
+            --gold-soft: #f4d03f;
+            --white: #ffffff;
+            --black-rich: #0f172a;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --bg-light: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --shadow-premium: 0 10px 40px -10px rgba(0,0,0,0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg-light); color: var(--text-dark); overflow-x: hidden; }
+        h1, h2, h3, .logo { font-family: 'Playfair Display', serif; }
+
+        /* Navbar Modernization */
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 80px; background: var(--glass);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .navbar.scrolled { padding: 12px 80px; box-shadow: var(--shadow-premium); }
+
+        .logo { display: flex; align-items: center; gap: 12px; font-size: 28px; font-weight: 700; color: var(--black-rich); text-decoration: none; }
+        .logo i { color: var(--pink-primary); transform: rotate(-10deg); transition: 0.3s; }
+        .logo:hover i { transform: rotate(0deg) scale(1.1); }
+
+        .nav-links { display: flex; list-style: none; gap: 45px; }
+        .nav-links a { text-decoration: none; color: var(--text-dark); font-weight: 500; font-size: 15px; transition: 0.3s; position: relative; opacity: 0.8; }
+        .nav-links a:hover { opacity: 1; color: var(--pink-primary); }
+        .nav-links a::after { content: ''; position: absolute; bottom: -6px; left: 50%; width: 0; height: 2px; background: var(--pink-primary); transition: 0.3s; transform: translateX(-50%); }
+        .nav-links a:hover::after { width: 100%; }
+
+        .nav-buttons { display: flex; gap: 15px; }
+
+        .btn { padding: 12px 28px; border-radius: 50px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; transition: 0.4s; display: inline-flex; align-items: center; gap: 10px; text-decoration: none; letter-spacing: 0.5px; }
+        .btn-primary { background: linear-gradient(135deg, var(--pink-primary), #c2185b); color: white; box-shadow: 0 10px 20px -5px rgba(233, 30, 99, 0.3); }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px -5px rgba(233, 30, 99, 0.4); }
+        .btn-outline { background: transparent; color: var(--pink-primary); border: 2px solid rgba(233, 30, 99, 0.15); }
+        .btn-outline:hover { background: var(--pink-primary); color: white; border-color: var(--pink-primary); }
+
+        /* Premium Hero */
+        .hero { min-height: 100vh; display: flex; align-items: center; position: relative; padding: 120px 80px 80px; overflow: hidden; }
+        .hero::before { content: ''; position: absolute; top: 0; right: 0; width: 45%; height: 100%; background: linear-gradient(135deg, var(--gold-light), var(--pink-light)); border-radius: 0 0 0 100%; z-index: -1; }
+        
+        .hero-content { max-width: 650px; z-index: 2; }
+        .hero-tag { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; background: rgba(233, 30, 99, 0.08); border-radius: 50px; color: var(--pink-primary); font-size: 13px; font-weight: 700; text-transform: uppercase; margin-bottom: 30px; }
+        .hero h1 { font-size: 72px; line-height: 1.1; color: var(--black-rich); margin-bottom: 25px; }
+        .hero h1 span { color: var(--pink-primary); font-style: italic; }
+        .hero p { font-size: 19px; color: var(--text-muted); margin-bottom: 45px; max-width: 550px; }
+        
+        .hero-image-wrap { position: relative; flex: 1; display: flex; justify-content: flex-end; }
+        .hero-main-img { width: 480px; height: 600px; border-radius: 240px 240px 20px 20px; object-fit: cover; box-shadow: 30px 30px 0 var(--white), 30px 30px 60px rgba(0,0,0,0.1); animation: morphing 10s infinite alternate; }
+        @keyframes morphing { 0% { border-top-left-radius: 200px; } 50% { border-top-left-radius: 100px; } 100% { border-top-left-radius: 200px; } }
+
+        /* Sections Styling */
+        .section { padding: 120px 80px; position: relative; }
+        .section-title { text-align: center; margin-bottom: 80px; }
+        .section-title h2 { font-size: 48px; margin-bottom: 15px; color: var(--black-rich); }
+        .section-title p { color: var(--text-muted); font-size: 18px; }
+
+        /* Modern Feature Cards */
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 35px; }
+        .feature-card { padding: 50px 40px; background: var(--white); border-radius: 30px; transition: 0.4s; border: 1px solid rgba(0,0,0,0.03); position: relative; overflow: hidden; }
+        .feature-card:hover { transform: translateY(-15px); box-shadow: var(--shadow-premium); border-color: var(--pink-light); }
+        .feature-icon { width: 70px; height: 70px; background: var(--bg-light); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--pink-primary); margin-bottom: 30px; transition: 0.4s; }
+        .feature-card:hover .feature-icon { background: var(--pink-primary); color: var(--white); transform: rotate(-10deg); }
+
+        /* Service Cards Premium */
+        .service-card { border-radius: 32px; background: var(--white); overflow: hidden; box-shadow: var(--shadow-premium); border: 1px solid rgba(0,0,0,0.03); }
+        .s-img-wrap { height: 280px; position: relative; overflow: hidden; }
+        .s-img-wrap img { width: 100%; height: 100%; object-fit: cover; transition: 0.8s; }
+        .service-card:hover .s-img-wrap img { transform: scale(1.15) rotate(2deg); }
+        .s-content { padding: 35px; }
+        .s-tag { font-size: 12px; font-weight: 700; color: var(--pink-primary); text-transform: uppercase; margin-bottom: 10px; display: block; }
+        .s-price { font-size: 24px; font-weight: 800; color: var(--black-rich); margin-top: 20px; display: block; }
+
+        /* Transformation Gallery */
+        .gallery-wrap { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 20px; height: 500px; }
+        .gallery-item { border-radius: 24px; overflow: hidden; position: relative; }
+        .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .gallery-item:hover img { transform: scale(1.1); }
+        .gallery-item .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); display: flex; align-items: flex-end; padding: 30px; opacity: 0; transition: 0.4s; }
+        .gallery-item:hover .overlay { opacity: 1; }
+        .gallery-item .overlay span { color: white; font-weight: 600; font-size: 18px; }
+
+        /* Footer Redesign */
+        footer { background: var(--black-rich); color: var(--white); padding: 100px 80px 40px; border-radius: 60px 60px 0 0; }
+        .f-grid { display: grid; grid-template-columns: 2fr 1fr 1.5fr; gap: 80px; margin-bottom: 80px; }
+        .f-logo { font-size: 32px; margin-bottom: 25px; display: block; color: var(--white); text-decoration: none; }
+        .footer-links a { color: rgba(255,255,255,0.6); text-decoration: none; display: block; margin-bottom: 15px; transition: 0.3s; }
+        .footer-links a:hover { color: var(--gold-primary); transform: translateX(5px); }
+        
+        @media (max-width: 1024px) {
+            .navbar, .hero, .section, footer { padding-left: 40px; padding-right: 40px; }
+            .hero h1 { font-size: 56px; }
+            .grid-3 { grid-template-columns: repeat(2, 1fr); }
+            .f-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .nav-links, .nav-buttons { display: none; }
+            .hero { text-align: center; justify-content: center; }
+            .hero-image-wrap { display: none; }
+            .grid-3 { grid-template-columns: 1fr; }
+        }
+    </style>
+        /* Loading Animation */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--gray-light);
+            border-top-color: var(--pink-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 40px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="logo">
+            <i class="fas fa-spa"></i>
+            <span>Glamorous</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html" class="active">Home</a></li>
+            <li><a href="services.html">Services</a></li>
+            <li><a href="#features">About</a></li>
+            <li><a href="services.html?tab=combo">Experience</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+        <div class="nav-buttons">
+            <a href="login.html" class="btn btn-outline">Login</a>
+            <a href="register.html" class="btn btn-primary">Start Journey</a>
+        </div>
+    </nav>
+
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <span class="hero-tag"><i class="fas fa-sparkles"></i> The Definition of Luxury</span>
+            <h1>Unleash Your <span>Natural</span> Radiance</h1>
+            <p>Step into a world of curated beauty. Our master stylists blend art and science to create looks that don't just follow trends—they define them.</p>
+            <div class="hero-buttons">
+                <a href="services.html" class="btn btn-primary btn-lg">Book Premiere Service</a>
+                <a href="#features" class="btn btn-outline btn-lg">View Our Craft</a>
+            </div>
+        </div>
+        <div class="hero-image-wrap">
+            <img src="https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&height=1000&fit=crop" alt="Beauty model" class="hero-main-img">
+        </div>
+    </section>
+
+    <!-- Essential Features -->
+    <section class="section" id="features">
+        <div class="section-title">
+            <h2>Why Glamorous Studio?</h2>
+            <div class="gold-line" style="width: 80px; height: 3px; background: var(--pink-primary); margin: 20px auto;"></div>
+        </div>
+        <div class="grid-3">
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-award"></i></div>
+                <h3>Artisan Expertise</h3>
+                <p>Our stylists are internationally trained artists dedicated to the precision of their craft.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-leaf"></i></div>
+                <h3>Pure Products</h3>
+                <p>We use exclusively organic, cruelty-free formulas that nourish while they transform.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon"><i class="fas fa-chess-queen"></i></div>
+                <h3>Royal Treatment</h3>
+                <p>From the moment you enter, you are our singular focus. Luxury is in every detail.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Highlights -->
+    <section class="section" id="services" style="background: var(--white);">
+        <div class="section-title">
+            <h2>Curated Services</h2>
+            <p>Elevated essentials for the modern aesthetic</p>
+        </div>
+        <div class="grid-3">
+            <a href="services.html?tab=combo&category=Signature" class="service-card" style="text-decoration: none;">
+                <div class="s-img-wrap">
+                    <img src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=600&fit=crop" alt="Hair Design">
+                </div>
+                <div class="s-content">
+                    <span class="s-tag">Signature</span>
+                    <h3>Architectural Hair Design</h3>
+                    <p>Cuts tailored to your facial structure and individual lifestyle.</p>
+                    <span class="s-price">Explore Packages <i class="fas fa-arrow-right" style="font-size: 14px; margin-left: 10px;"></i></span>
+                </div>
+            </a>
+            <a href="services.html?tab=combo&category=Therapy" class="service-card" style="text-decoration: none;">
+                <div class="s-img-wrap">
+                    <img src="https://images.unsplash.com/photo-1560750588-73207b1ef5b8?w=600&fit=crop" alt="Skin Care">
+                </div>
+                <div class="s-content">
+                    <span class="s-tag">Therapy</span>
+                    <h3>Wellness & Therapy</h3>
+                    <p>Advanced facials and body treatments for holistic renewal.</p>
+                    <span class="s-price">Explore Packages <i class="fas fa-arrow-right" style="font-size: 14px; margin-left: 10px;"></i></span>
+                </div>
+            </a>
+            <a href="services.html?tab=combo&category=Artistry" class="service-card" style="text-decoration: none;">
+                <div class="s-img-wrap">
+                    <img src="https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=600&fit=crop" alt="Makeup">
+                </div>
+                <div class="s-content">
+                    <span class="s-tag">Artistry</span>
+                    <h3>Master Artistry</h3>
+                    <p>Red-carpet ready transformations for your special moments.</p>
+                    <span class="s-price">Explore Packages <i class="fas fa-arrow-right" style="font-size: 14px; margin-left: 10px;"></i></span>
+                </div>
+            </a>
+        </div>
+    </section>
+
+    <!-- Transformation Gallery -->
+    <section class="section">
+        <div class="section-title">
+            <h2>The Transformation</h2>
+            <p>Real results from our studio</p>
+        </div>
+        <div class="gallery-wrap">
+            <div class="gallery-item" style="grid-column: span 1;">
+                <img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&fit=crop" alt="Result 1">
+                <div class="overlay"><span>Bridal Glow Transformation</span></div>
+            </div>
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1595476108010-b4d1f102b1b1?w=800&fit=crop" alt="Result 2">
+                <div class="overlay"><span>Signature Pastel Balayage</span></div>
+            </div>
+            <div class="gallery-item">
+                <img src="https://images.unsplash.com/photo-1620331311520-246422fd82f9?w=800&fit=crop" alt="Result 3">
+                <div class="overlay"><span>Executive Grooming Session</span></div>
+            </div>
+        </div>
+    </section>
+
+    <footer id="contact">
+        <div class="f-grid">
+            <div>
+                <a href="#" class="f-logo">Glamorous Studio</a>
+                <p>Defining the standard of luxury beauty since 2018. We believe every individual possesses a unique radiance waiting to be unveiled.</p>
+                <div style="display: flex; gap: 20px; margin-top: 30px;">
+                    <a href="#" style="color: white; font-size: 20px;"><i class="fab fa-instagram"></i></a>
+                    <a href="#" style="color: white; font-size: 20px;"><i class="fab fa-facebook"></i></a>
+                    <a href="#" style="color: white; font-size: 20px;"><i class="fab fa-pinterest"></i></a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h4 style="margin-bottom: 25px; font-size: 20px; font-family: 'Playfair Display';">Experience</h4>
+                <a href="services.html">Services</a>
+                <a href="#services">Gallery</a>
+                <a href="#features">Our Artists</a>
+                <a href="login.html">Membership</a>
+            </div>
+            <div>
+                <h4 style="margin-bottom: 25px; font-size: 20px; font-family: 'Playfair Display';">Contact</h4>
+                <p style="margin-bottom: 15px; opacity: 0.7;"><i class="fas fa-map-marker-alt" style="margin-right: 15px; color: var(--gold-primary);"></i> 123 Luxury Lane, Fashion District, Mumbai</p>
+                <p style="margin-bottom: 15px; opacity: 0.7;"><i class="fas fa-phone" style="margin-right: 15px; color: var(--gold-primary);"></i> +91 98765 43210</p>
+                <p style="opacity: 0.7;"><i class="fas fa-envelope" style="margin-right: 15px; color: var(--gold-primary);"></i> concierge@glamoroussalon.com</p>
+            </div>
+        </div>
+        <div style="text-align: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 40px; opacity: 0.4; font-size: 13px;">
+            <p>© 2024 Glamorous Studio Salon. Crafted with Elegance.</p>
+        </div>
+    </footer>
+
+    <script>
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('.navbar');
+            if (window.scrollY > 50) nav.classList.add('scrolled');
+            else nav.classList.remove('scrolled');
+        });
+
+        // Simple Intersection Observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.feature-card, .service-card').forEach(el => {
+            el.style.opacity = 0;
+            el.style.transform = 'translateY(40px)';
+            el.style.transition = '0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
