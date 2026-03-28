@@ -239,27 +239,28 @@ app.post('/api/login', (req, res) => {
 });
 
 app.post("/api/send-otp", async (req, res) => {
-    const { email } = req.body;
-
-    if (!email) {
-        return res.status(400).json({ message: "Email required" });
-    }
-
-    const otp = Math.floor(100000 + Math.random() * 900000);
-    // Important: Keep storing OTP for verification step later
-    otpStore[email] = { otp: otp.toString(), expires: Date.now() + 10 * 60 * 1000 };
-
-    const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        }
-    });
-
     try {
+        const { email } = req.body;
+        console.log("EMAIL:", email);
+
+        if (!email) {
+            return res.status(400).json({ message: "Email required" });
+        }
+
+        const otp = Math.floor(100000 + Math.random() * 900000);
+        // Important: Keep storing OTP for verification step later
+        otpStore[email] = { otp: otp.toString(), expires: Date.now() + 10 * 60 * 1000 };
+
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+                user: "namansarvaiya2004@gmail.com",
+                pass: "wrrnqjvrzqarxapc"
+            }
+        });
+
         await transporter.sendMail({
-            from: process.env.EMAIL_USER,
+            from: "namansarvaiya01@gmail.com",
             to: email,
             subject: "OTP",
             text: `Your OTP is ${otp}`
@@ -268,8 +269,8 @@ app.post("/api/send-otp", async (req, res) => {
         res.json({ success: true, message: "OTP sent successfully" });
 
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Failed to send email" });
+        console.error("MAIL ERROR:", error); // 👈 Added as requested
+        res.status(500).json({ message: "Email failed" });
     }
 });
 
