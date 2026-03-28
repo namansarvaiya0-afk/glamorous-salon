@@ -272,6 +272,7 @@ app.post("/api/forgot-password", async (req, res) => {
 
     try {
         await transporter.sendMail({
+            from: "namansarvaiya0@gmail.com",
             to: email,
             subject: "Password Reset OTP",
             html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
