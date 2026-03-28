@@ -151,7 +151,7 @@
                 </div>
                 <div class="input-group full-width">
                     <label>Phone Number</label>
-                    <input type="tel" id="phone" required placeholder="+91 90000 00000">
+                    <input type="tel" id="phone" required placeholder="Enter 10-digit number" maxlength="10" pattern="\d{10}">
                 </div>
                 <div class="input-group full-width">
                     <label>Create Password</label>
@@ -207,6 +207,10 @@
             return Object.values(reqs).every(v => v === true);
         }
 
+        document.getElementById('phone').addEventListener('input', function(e) {
+            this.value = this.value.replace(/\D/g, '').slice(0, 10);
+        });
+
         document.querySelector("form").addEventListener("submit", async (e) => {
             e.preventDefault();
 
@@ -215,6 +219,11 @@
             const email = document.querySelector("#email").value;
             const password = document.querySelector("#password").value;
             const phone = document.querySelector("#phone") ? document.querySelector("#phone").value : "";
+
+            if (phone.length !== 10) {
+                alert("Please enter a valid 10-digit phone number");
+                return;
+            }
 
             const res = await fetch("/api/register", {
                 method: "POST",

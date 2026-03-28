@@ -9,7 +9,8 @@ const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 
-const otpStore = {};
+const otpStore = new Map(); // Using Map for better performance and clear expiry logic
+
 
 const app = express();   // ✅ ONLY ONCE
 const PORT = process.env.PORT || 10000;
@@ -238,19 +239,26 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-app.post("/api/send-otp", async (req, res) => {
-    try {
-        const { email } = req.body;
-        console.log("EMAIL:", email);
 
-        if (!email) {
-            return res.status(400).json({ message: "Email required" });
-        }
 
-        const otp = Math.floor(100000 + Math.random() * 900000);
-        // Important: Keep storing OTP for verification step later
-        otpStore[email] = { otp: otp.toString(), expires: Date.now() + 10 * 60 * 1000 };
+// --- Forgot Password APIs ---
 
+// 1. Send OTP
+app.post("/api/forgot-password", async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email is required" });
+
+    // Check if user exists
+    executeQuery('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
+        if (err) return res.status(500).json({ error: "Database error" });
+        if (results.length === 0) return res.status(404).json({ error: "No account found with this email" });
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+        otpStore.set(email, { otp, expiresAt });
+
+        // Setup Transporter (Using a generic one, but user should configure their own later)
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
@@ -259,52 +267,81 @@ app.post("/api/send-otp", async (req, res) => {
             }
         });
 
-        await transporter.sendMail({
-            from: "namansarvaiya01@gmail.com",
-            to: email,
-            subject: "OTP",
-            text: `Your OTP is ${otp}`
-        });
-
-        res.json({ success: true, message: "OTP sent successfully" });
-
-    } catch (error) {
-        console.error("MAIL ERROR:", error); // 👈 Added as requested
-        res.status(500).json({ message: "Email failed" });
-    }
-});
-
-app.post('/api/verify-otp', (req, res) => {
-    const { email, otp } = req.body;
-    const record = otpStore[email];
-    
-    if (!record || record.expires < Date.now() || record.otp !== otp) {
-        return res.status(400).send({ error: 'Invalid or expired OTP' });
-    }
-    
-    res.send({ success: true, message: 'OTP verified' });
-});
-
-app.post('/api/reset-password', async (req, res) => {
-    const { email, otp, newPassword } = req.body;
-    const record = otpStore[email];
-    
-    if (!record || record.otp !== otp) {
-        return res.status(400).send({ error: 'Unauthorized request or expired OTP' });
-    }
-    
-    const hashedPassword = await bcrypt.hash(newPassword, 8);
-    executeQuery('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email], (err) => {
-        if (err) return res.status(500).send(err);
-        
-        delete otpStore[email];
-        res.send({ success: true, message: 'Password updated successfully' });
+        try {
+            await transporter.sendMail({
+                from: '"Glamorous Studio" <namansarvaiya01@gmail.com>',
+                to: email,
+                subject: "Security Reset Code - Glamorous Studio",
+                html: `
+                    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
+                        <div style="background-color: #ff2d75; padding: 20px; text-align: center;">
+                            <h2 style="color: white; margin: 0; letter-spacing: 2px;">GLAMOROUS STUDIO</h2>
+                        </div>
+                        <div style="padding: 40px; text-align: center; background: #fff;">
+                            <p style="font-size: 16px; color: #666;">You requested to reset your password. Use the verification code below to proceed.</p>
+                            <h1 style="font-size: 42px; margin: 20px 0; color: #ff2d75; letter-spacing: 5px;">${otp}</h1>
+                            <p style="font-size: 14px; color: #999;">This code will expire in 5 minutes.</p>
+                        </div>
+                        <div style="background-color: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #aaa;">
+                            If you did not request this, please ignore this email.
+                        </div>
+                    </div>
+                `
+            });
+            res.json({ success: true, message: "OTP sent successfully" });
+        } catch (mailErr) {
+            console.error("Mail Error:", mailErr);
+            res.status(500).json({ error: "Failed to send email. Try again later." });
+        }
     });
 });
 
-// Auth: Register
+// 2. Verify OTP
+app.post("/api/verify-otp", (req, res) => {
+    const { email, otp } = req.body;
+    const record = otpStore.get(email);
+
+    if (!record) return res.status(400).json({ error: "Session expired. Request a new code." });
+    if (Date.now() > record.expiresAt) {
+        otpStore.delete(email);
+        return res.status(400).json({ error: "Code expired." });
+    }
+    if (record.otp !== otp) return res.status(400).json({ error: "Invalid verification code." });
+
+    res.json({ success: true, message: "Verification successful" });
+});
+
+// 3. Reset Password
+app.post("/api/reset-password", async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+    const record = otpStore.get(email);
+
+    if (!record || record.otp !== otp || Date.now() > record.expiresAt) {
+        return res.status(400).json({ error: "Unauthorized or expired request" });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(newPassword, 8);
+        executeQuery('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email], (err) => {
+            if (err) return res.status(500).json({ error: "Failed to update password" });
+            
+            otpStore.delete(email);
+            res.json({ success: true, message: "Password updated successfully" });
+        });
+    } catch (passErr) {
+        res.status(500).json({ error: "Processing error" });
+    }
+});
+
+// --- Auth: Register ---
 app.post('/api/register', async (req, res) => {
     const { firstName, lastName, email, phone, password } = req.body;
+
+    // Validate phone number (exactly 10 digits)
+    if (!/^\d{10}$/.test(phone)) {
+        return res.status(400).send({ error: 'Phone number must be exactly 10 digits' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 8);
 
     executeQuery('INSERT INTO users (first_name, last_name, email, phone, password) VALUES (?, ?, ?, ?, ?)',
