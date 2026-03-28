@@ -114,12 +114,13 @@
             .f-grid { grid-template-columns: 1fr 1fr; }
         }
         @media (max-width: 768px) {
-            .nav-links, .nav-buttons { display: none; }
+            .navbar { padding: 15px 20px; flex-wrap: wrap; }
+            .nav-links { display: none; }
+            .nav-buttons { transform: scale(0.85); gap: 10px; margin-right: -10px; }
             .hero { text-align: center; justify-content: center; }
             .hero-image-wrap { display: none; }
             .grid-3 { grid-template-columns: 1fr; }
         }
-    </style>
         /* Loading Animation */
         .loading-spinner {
             width: 40px;
