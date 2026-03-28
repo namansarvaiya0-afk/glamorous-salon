@@ -172,7 +172,7 @@ const authenticateToken = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) return res.status(401).send({ error: 'Authentication required' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'GLAMOUR_STUDIO_SECRET_2024');
+        const decoded = jwt.verify(token, 'GLAMOUR_SECRET');
         req.user = decoded;
         next();
     } catch (e) {
@@ -185,7 +185,7 @@ const authenticateAdmin = (req, res, next) => {
     const token = req.header('Authorization')?.replace('Bearer ', '');
     if (!token) return res.status(401).send({ error: 'Please authenticate as admin' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'GLAMOUR_STUDIO_SECRET_2024');
+        const decoded = jwt.verify(token, 'GLAMOUR_SECRET');
         if (decoded.role !== 'admin') throw new Error();
         req.admin = decoded;
         next();
@@ -200,11 +200,10 @@ app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     console.log(`Login attempt for: ${email}`);
 
-    // Super-Fail-Safe for Admin (Bypass Database)
     if (email === 'admin' && password === 'Admin@123') {
         console.log('Admin login bypass triggered');
         const adminUser = { id: 999, first_name: 'Salon', last_name: 'Admin', email: 'admin', role: 'admin' };
-        const token = jwt.sign(adminUser, process.env.JWT_SECRET || 'GLAMOUR_STUDIO_SECRET_2024');
+        const token = jwt.sign(adminUser, 'GLAMOUR_SECRET');
         return res.send({ success: true, user: adminUser, token });
     }
 
@@ -234,7 +233,7 @@ app.post('/api/login', (req, res) => {
         }
 
         console.log(`Login successful: ${email} (${user.role})`);
-        const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'GLAMOUR_STUDIO_SECRET_2024');
+        const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, 'GLAMOUR_SECRET');
         res.send({ success: true, user: { id: user.id, email: user.email, name: user.first_name, role: user.role }, token });
     });
 });
@@ -258,7 +257,9 @@ app.post('/api/forgot-password', (req, res) => {
         }
 
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true, // Use SSL
             auth: {
                 user: emailUser,
                 pass: emailPass
