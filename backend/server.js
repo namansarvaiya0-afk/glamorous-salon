@@ -107,6 +107,11 @@ const executeQuery = (sql, params, callback) => {
             return callback(null, results);
         }
 
+        if (sqlLower.includes('select * from users where phone = ?')) {
+            const results = data.users.filter(u => u.phone === params[0]);
+            return callback(null, results);
+        }
+
         if (sqlLower.includes('select') && sqlLower.includes('from users')) {
             const usersList = data.users.map(u => ({...u, role_val: u.role || 'client'}));
             return callback(null, usersList);
@@ -256,100 +261,72 @@ app.post('/api/login', (req, res) => {
 
 
 
-// --- Forgot Password APIs ---
+// --- Forgot Password APIs (Phone Based) ---
 
-// 1. Send OTP
+// 1. Send OTP via Text (Simulation)
 app.post("/api/forgot-password", async (req, res) => {
-    const { email } = req.body;
-    console.log(`[Forgot Password] Request received for: ${email}`);
+    const { phone } = req.body;
+    console.log(`[Forgot Password] SMS Request for: ${phone}`);
     
-    if (!email) return res.status(400).json({ error: "Email is required" });
+    if (!phone) return res.status(400).json({ error: "Phone number is required" });
 
-    // Check if user exists
-    executeQuery('SELECT * FROM users WHERE email = ?', [email.toLowerCase()], async (err, results) => {
-        if (err) {
-            console.error("[DB Error]", err);
-            return res.status(500).json({ error: "Database error" });
-        }
-        
-        if (results.length === 0) {
-            console.log(`[Forgot Password] No user found for: ${email}`);
-            return res.status(404).json({ error: "No account found with this email" });
-        }
+    // Check if user exists by phone
+    executeQuery('SELECT * FROM users WHERE phone = ?', [phone], async (err, results) => {
+        if (err) return res.status(500).json({ error: "Database error" });
+        if (results.length === 0) return res.status(404).json({ error: "No account found with this phone number" });
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const expiresAt = Date.now() + 5 * 60 * 1000;
 
-        otpStore.set(email.toLowerCase(), { otp, expiresAt });
-        console.log(`[Forgot Password] Generated OTP for ${email}: ${otp}`);
+        otpStore.set(phone, { otp, expiresAt });
 
-        try {
-            console.log(`[Forgot Password] Attempting to send email to: ${email}`);
-            await transporter.sendMail({
-                from: '"Glamorous Studio" <namansarvaiya01@gmail.com>',
-                to: email,
-                subject: "Security Reset Code - Glamorous Studio",
-                html: `
-                    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #eee; border-radius: 10px; overflow: hidden;">
-                        <div style="background-color: #ff2d75; padding: 20px; text-align: center;">
-                            <h2 style="color: white; margin: 0; letter-spacing: 2px;">GLAMOROUS STUDIO</h2>
-                        </div>
-                        <div style="padding: 40px; text-align: center; background: #fff;">
-                            <p style="font-size: 16px; color: #666;">You requested to reset your password. Use the verification code below to proceed.</p>
-                            <h1 style="font-size: 42px; margin: 20px 0; color: #ff2d75; letter-spacing: 5px;">${otp}</h1>
-                            <p style="font-size: 14px; color: #999;">This code will expire in 5 minutes.</p>
-                        </div>
-                        <div style="background-color: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #aaa;">
-                            If you did not request this, please ignore this email.
-                        </div>
-                    </div>
-                `
-            });
-            console.log(`[Forgot Password] Email sent successfully to: ${email}`);
-            return res.json({ success: true, message: "OTP sent successfully" });
-        } catch (mailErr) {
-            console.error("[Mail Error]", mailErr);
-            return res.status(500).json({ error: "Email service failed. Please check your internet or try again later." });
-        }
+        // SMS Simulation
+        console.log("------------------------------------------");
+        console.log(`📱 SMS SENT TO: ${phone}`);
+        console.log(`🔑 YOUR SECURE CODE: ${otp}`);
+        console.log("------------------------------------------");
+
+        res.json({ success: true, message: "Verification code sent via SMS (Simulation)" });
     });
 });
 
 // 2. Verify OTP
 app.post("/api/verify-otp", (req, res) => {
-    const { email, otp } = req.body;
-    const record = otpStore.get(email);
+    const { phone, otp } = req.body;
+    const record = otpStore.get(phone);
 
-    if (!record) return res.status(400).json({ error: "Session expired. Request a new code." });
+    if (!record) return res.status(400).json({ error: "Session expired." });
     if (Date.now() > record.expiresAt) {
-        otpStore.delete(email);
+        otpStore.delete(phone);
         return res.status(400).json({ error: "Code expired." });
     }
-    if (record.otp !== otp) return res.status(400).json({ error: "Invalid verification code." });
+    if (record.otp !== otp) return res.status(400).json({ error: "Invalid code." });
 
     res.json({ success: true, message: "Verification successful" });
 });
 
 // 3. Reset Password
 app.post("/api/reset-password", async (req, res) => {
-    const { email, otp, newPassword } = req.body;
-    const record = otpStore.get(email);
+    const { phone, otp, newPassword } = req.body;
+    const record = otpStore.get(phone);
 
     if (!record || record.otp !== otp || Date.now() > record.expiresAt) {
-        return res.status(400).json({ error: "Unauthorized or expired request" });
+        return res.status(400).json({ error: "Unauthorized request" });
     }
 
     try {
         const hashedPassword = await bcrypt.hash(newPassword, 8);
-        executeQuery('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email], (err) => {
-            if (err) return res.status(500).json({ error: "Failed to update password" });
+        executeQuery('UPDATE users SET password = ? WHERE phone = ?', [hashedPassword, phone], (err) => {
+            if (err) return res.status(500).json({ error: "DB Update failed" });
             
-            otpStore.delete(email);
+            otpStore.delete(phone);
             res.json({ success: true, message: "Password updated successfully" });
         });
-    } catch (passErr) {
-        res.status(500).json({ error: "Processing error" });
+    } catch (e) {
+        res.status(500).json({ error: "Process error" });
     }
 });
+
 
 // --- Auth: Register ---
 app.post('/api/register', async (req, res) => {
