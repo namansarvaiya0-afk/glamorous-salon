@@ -231,7 +231,7 @@
 
         <div id="alertBox" class="alert"></div>
 
-        <form onsubmit="handleLogin(event)">
+        <form>
             <div class="input-group">
                 <label>Email Address</label>
                 <input type="email" id="email" required placeholder="name@luxury.com">
@@ -255,37 +255,42 @@
         </form>
     </div>
 
-   <script>
-const BASE_URL = "https://glamoroussalon.onrender.com";
+        <script>
+            document.querySelector("form").addEventListener("submit", function (e) {
+                e.preventDefault();
 
-async function loginUser() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+                const email = document.querySelector("#email").value;
+                const password = document.querySelector("#password").value;
 
-  try {
-    const res = await fetch(`${BASE_URL}/api/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
-    });
+                fetch("https://glamoroussalon.onrender.com/api/login", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ email, password }),
+                })
+                    .then((res) => res.json())
+                    .then((data) => {
+                        console.log(data); // debug ke liye
 
-    const data = await res.json();
+                        // Ensure we handle either logical check
+                        if (data.success || data.token) {
+                            // ✅ user save karo
+                            localStorage.setItem("user", JSON.stringify(data.user));
+                            localStorage.setItem("token", data.token);
 
-    if (res.ok) {
-      alert("Login successful");
-      window.location.href = "dashboard.html";
-    } else {
-      alert(data.message || "Login failed");
-    }
-
-  } catch (error) {
-    console.error(error);
-    alert("Connection to server failed. Please check your network.");
-  }
-}
-</script>
+                            // ✅ redirect karo
+                            window.location.href = "dashboard.html";
+                        } else {
+                            alert(data.message || data.error || "Login failed");
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        alert("Something went wrong");
+                    });
+            });
+        </script>
 </body>
 
 </html>

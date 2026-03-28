@@ -195,7 +195,7 @@ app.post('/api/login', (req, res) => {
         console.log('Admin login bypass triggered');
         const adminUser = { id: 999, first_name: 'Salon', last_name: 'Admin', email: 'admin', role: 'admin' };
         const token = jwt.sign(adminUser, process.env.JWT_SECRET || 'GLAMOUR_STUDIO_SECRET_2024');
-        return res.send({ user: adminUser, token });
+        return res.send({ success: true, user: adminUser, token });
     }
 
     executeQuery('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
@@ -225,7 +225,7 @@ app.post('/api/login', (req, res) => {
 
         console.log(`Login successful: ${email} (${user.role})`);
         const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'GLAMOUR_STUDIO_SECRET_2024');
-        res.send({ user: { id: user.id, email: user.email, name: user.first_name, role: user.role }, token });
+        res.send({ success: true, user: { id: user.id, email: user.email, name: user.first_name, role: user.role }, token });
     });
 });
 
