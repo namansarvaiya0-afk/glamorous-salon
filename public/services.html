@@ -286,7 +286,7 @@
         
         async function loadServices() {
             try {
-                const response = await fetch('https://glamoroussalon-1.onrender.com/api/services');
+                const response = await fetch('https://glamoroussalon.onrender.com/api/services');
                 if (response.ok) {
                     const data = await response.json();
                     services = data.map(s => ({...s, img: s.image || s.img}));
@@ -531,7 +531,7 @@
             };
 
             try {
-                const response = await fetch('https://glamoroussalon-1.onrender.com/api/bookings', {
+                const response = await fetch('https://glamoroussalon.onrender.com/api/bookings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(bookingData)
