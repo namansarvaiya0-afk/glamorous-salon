@@ -239,9 +239,9 @@ app.post('/api/login', (req, res) => {
 });
 
 // Auth: Send OTP
-app.post('/api/send-otp', (req, res) => {
+app.post('/api/send-otp', async (req, res) => {
     const { email } = req.body;
-    executeQuery('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
+    executeQuery('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
         if (err || results.length === 0) return res.status(404).send({ error: 'User not found' });
         
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -257,38 +257,25 @@ app.post('/api/send-otp', (req, res) => {
         }
 
         const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 465,
-            secure: true, // Use SSL
-            auth: {
-                user: emailUser,
-                pass: emailPass
-            }
+          service: "gmail",
+          auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS
+          }
         });
 
-        const mailOptions = {
-            from: `"Glamorous Studio Concierge" <${emailUser}>`,
-            to: email,
-            subject: 'Your Password Reset OTP Code - Glamorous Studio',
-            html: `
-            <div style="font-family: 'Outfit', Arial, sans-serif; padding: 30px; background: #fafafa; border-radius: 10px; text-align: center; color: #1f2937;">
-                <h2 style="color: #0a0a0b; font-family: 'Playfair Display', serif;">Glamorous Studio Security</h2>
-                <p style="font-size: 16px;">We received a request to reset the master password for your luxury account.</p>
-                <p style="margin: 30px 0;">Your secure OTP code is:</p>
-                <div style="font-size: 32px; font-weight: 800; letter-spacing: 5px; color: #ff2d75; background: rgba(255,45,117,0.1); padding: 15px 30px; border-radius: 10px; display: inline-block;">${otp}</div>
-                <p style="margin-top: 30px; font-size: 14px; color: #6b7280;">This code is valid for exactly 10 minutes. If you did not request this, please ignore this email.</p>
-                <p style="margin-top: 20px; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 20px;">© 2024 Glamorous Studio Salon</p>
-            </div>
-            `
-        };
-
-        transporter.sendMail(mailOptions, (error, info) => {
-            if (error) {
-                console.error('Email send error:', error);
-                return res.status(500).send({ error: 'Failed to send Email. Check SMTP credentials.' });
-            }
+        try {
+            await transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: "Your OTP",
+                text: `Your OTP is ${otp}`
+            });
             res.send({ success: true, message: 'OTP sent successful' });
-        });
+        } catch (error) {
+            console.error('Email send error:', error);
+            res.status(500).send({ error: 'Failed to send Email. Check SMTP credentials.' });
+        }
     });
 });
 
