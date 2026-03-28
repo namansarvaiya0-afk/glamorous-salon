@@ -216,6 +216,46 @@
             color: #059669;
             border: 1px solid #d1fae5;
         }
+
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 40px 25px;
+                border-radius: 20px;
+                max-width: 100%;
+            }
+            .header h1 {
+                font-size: 28px;
+            }
+            .header p {
+                font-size: 14px;
+            }
+            .header i {
+                font-size: 36px;
+            }
+            .input-group input {
+                padding: 16px 18px;
+                font-size: 16px;
+            }
+            .btn-luxury {
+                padding: 18px;
+                font-size: 15px;
+            }
+            .footer-links {
+                font-size: 13px;
+            }
+            #forgotPanel h3 {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .auth-card {
+                padding: 30px 18px;
+            }
+            .header h1 {
+                font-size: 24px;
+            }
+        }
     </style>
 </head>
 
@@ -317,7 +357,7 @@
                 
                 currentResetEmail = email;
                 try {
-                    const res = await fetch("https://glamoroussalon.onrender.com/api/forgot-password", {
+                    const res = await fetch("/api/forgot-password", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ email })
@@ -341,7 +381,7 @@
                 if (!currentResetEmail) return alert('No email found to resend OTP.');
                 
                 try {
-                    const res = await fetch("https://glamoroussalon.onrender.com/api/forgot-password", {
+                    const res = await fetch("/api/forgot-password", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ email: currentResetEmail })
@@ -364,7 +404,7 @@
                 
                 validOTP = otp;
                 try {
-                    const res = await fetch("https://glamoroussalon.onrender.com/api/verify-otp", {
+                    const res = await fetch("/api/verify-otp", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ email: currentResetEmail, otp })
@@ -388,7 +428,7 @@
                 if (!newPassword || newPassword.length < 6) return alert('Password must be at least 6 characters.');
                 
                 try {
-                    const res = await fetch("https://glamoroussalon.onrender.com/api/reset-password", {
+                    const res = await fetch("/api/reset-password", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ email: currentResetEmail, otp: validOTP, newPassword })
@@ -426,7 +466,7 @@
                 const email = document.querySelector("#email").value;
                 const password = document.querySelector("#password").value;
 
-                fetch("https://glamoroussalon.onrender.com/api/login", {
+                fetch("/api/login", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",

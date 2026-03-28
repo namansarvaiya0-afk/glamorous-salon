@@ -48,6 +48,9 @@
         .nav-links a:hover::after { width: 100%; }
 
         .nav-buttons { display: flex; gap: 15px; }
+        
+        .mobile-toggle { display: none; font-size: 24px; cursor: pointer; color: var(--text-dark); }
+        .mobile-menu { display: none; }
 
         .btn { padding: 12px 28px; border-radius: 50px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; transition: 0.4s; display: inline-flex; align-items: center; gap: 10px; text-decoration: none; letter-spacing: 0.5px; }
         .btn-primary { background: linear-gradient(135deg, var(--pink-primary), #c2185b); color: white; box-shadow: 0 10px 20px -5px rgba(233, 30, 99, 0.3); }
@@ -120,6 +123,47 @@
             .hero { text-align: center; justify-content: center; }
             .hero-image-wrap { display: none; }
             .grid-3 { grid-template-columns: 1fr; }
+            .mobile-toggle { display: block; }
+            .nav-buttons { display: none; }
+            .navbar.mobile-open .mobile-menu {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                padding: 20px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+                gap: 15px;
+            }
+            .navbar.mobile-open .mobile-menu a {
+                padding: 12px 0;
+                border-bottom: 1px solid #eee;
+                text-align: center;
+                color: var(--text-dark);
+                text-decoration: none;
+                font-weight: 500;
+            }
+            .navbar.mobile-open .nav-buttons { display: flex; flex-direction: column; gap: 10px; }
+            .navbar.mobile-open .nav-buttons a { text-align: center; }
+            .hero h1 { font-size: 40px; }
+            .hero p { font-size: 16px; }
+            .section { padding: 60px 20px; }
+            .section-title h2 { font-size: 32px; }
+            .f-grid { grid-template-columns: 1fr; gap: 40px; }
+            footer { padding: 60px 20px 30px; border-radius: 30px 30px 0 0; }
+            .gallery-wrap { grid-template-columns: 1fr; height: auto; }
+            .gallery-item { height: 250px; }
+        }
+        
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 32px; }
+            .section-title h2 { font-size: 26px; }
+            .section-title p { font-size: 14px; }
+            .feature-card { padding: 30px 20px; }
+            .s-content { padding: 20px; }
+            .s-price { font-size: 18px; }
         }
         /* Loading Animation */
         .loading-spinner {
@@ -138,7 +182,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar">
+    <nav class="navbar" id="mainNav">
         <a href="index.html" class="logo">
             <i class="fas fa-spa"></i>
             <span>Glamorous</span>
@@ -154,6 +198,18 @@
             <a href="login.html" class="btn btn-outline">Login</a>
             <a href="register.html" class="btn btn-primary">Start Journey</a>
         </div>
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="index.html">Home</a>
+            <a href="services.html">Services</a>
+            <a href="#features">About</a>
+            <a href="services.html?tab=combo">Experience</a>
+            <a href="#contact">Contact</a>
+            <div class="nav-buttons" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                <a href="login.html" class="btn btn-outline" style="text-align: center;">Login</a>
+                <a href="register.html" class="btn btn-primary" style="text-align: center;">Start Journey</a>
+            </div>
+        </div>
+        <i class="fas fa-bars mobile-toggle" onclick="toggleMobileMenu()"></i>
     </nav>
 
     <section class="hero" id="home">
@@ -292,8 +348,13 @@
     </footer>
 
     <script>
+        function toggleMobileMenu() {
+            const nav = document.getElementById('mainNav');
+            nav.classList.toggle('mobile-open');
+        }
+
         window.addEventListener('scroll', () => {
-            const nav = document.querySelector('.navbar');
+            const nav = document.getElementById('mainNav');
             if (window.scrollY > 50) nav.classList.add('scrolled');
             else nav.classList.remove('scrolled');
         });
