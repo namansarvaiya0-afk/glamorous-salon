@@ -341,20 +341,35 @@
             async function sendOTP() {
                 const email = document.querySelector("#resetEmail").value;
 
-                const res = await fetch("/api/send-otp", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ email })
-                });
+                if (!email) {
+                    alert("Enter email");
+                    return;
+                }
 
-                const data = await res.json();
-                alert(data.message);
-                
-                if (data.success) {
-                    document.getElementById('stepEmail').style.display = 'none';
-                    document.getElementById('stepOtp').style.display = 'block';
+                try {
+                    const res = await fetch("/api/send-otp", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ email })
+                    });
+
+                    const data = await res.json();
+
+                    console.log(data); // 👈 added as requested
+
+                    alert(data.message || "OTP sent");
+                    
+                    if (data.success) {
+                        currentResetEmail = email; // Store for verification/resend
+                        document.getElementById('stepEmail').style.display = 'none';
+                        document.getElementById('stepOtp').style.display = 'block';
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    alert("Error sending OTP");
                 }
             }
 
