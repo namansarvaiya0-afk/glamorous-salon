@@ -238,45 +238,39 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Auth: Send OTP
-app.post('/api/send-otp', async (req, res) => {
+app.post("/api/send-otp", async (req, res) => {
     const { email } = req.body;
-    executeQuery('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
-        if (err || results.length === 0) return res.status(404).send({ error: 'User not found' });
-        
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        // Set OTP to expire in 10 minutes
-        otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 };
-        
-        const emailUser = process.env.EMAIL_USER || 'namansarvaiya2004@gmail.com';
-        const emailPass = process.env.EMAIL_PASS || 'wrrn qjvr zqar xapc';
 
-        if (!emailUser || !emailPass) {
-            console.log(`[EMAIL SEND SIMULATION - ADD EMAIL_USER & EMAIL_PASS to .env] OTP for ${email} is: ${otp}`);
-            return res.send({ success: true, message: 'OTP simulated in console. Setup .env with EMAIL_USER and EMAIL_PASS to send real emails.' });
-        }
+    if (!email) {
+        return res.status(400).json({ message: "Email required" });
+    }
 
-        const transporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    // Important: Keep storing OTP for verification step later
+    otpStore[email] = { otp: otp.toString(), expires: Date.now() + 10 * 60 * 1000 };
+
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS
-          }
-        });
-
-        try {
-            await transporter.sendMail({
-                from: process.env.EMAIL_USER,
-                to: email,
-                subject: "Your OTP",
-                text: `Your OTP is ${otp}`
-            });
-            res.send({ success: true, message: 'OTP sent successful' });
-        } catch (error) {
-            console.error('Email send error:', error);
-            res.status(500).send({ error: 'Failed to send Email. Check SMTP credentials.' });
         }
     });
+
+    try {
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: "OTP",
+            text: `Your OTP is ${otp}`
+        });
+
+        res.json({ success: true, message: "OTP sent successfully" });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Failed to send email" });
+    }
 });
 
 app.post('/api/verify-otp', (req, res) => {
