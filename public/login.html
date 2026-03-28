@@ -339,7 +339,8 @@
             let validOTP = '';
 
             async function sendOTP() {
-                const email = document.querySelector("#resetEmail").value;
+                console.log("clicked"); // Debug trace
+                const email = document.getElementById("email").value;
 
                 if (!email) {
                     alert("Enter email");
