@@ -339,27 +339,22 @@
             let validOTP = '';
 
             async function sendOTP() {
-                const email = document.getElementById('resetEmail').value.trim();
-                if (!email) return alert('Please enter your email.');
+                const email = document.querySelector("#resetEmail").value;
+
+                const res = await fetch("/api/send-otp", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await res.json();
+                alert(data.message);
                 
-                currentResetEmail = email;
-                try {
-                    const res = await fetch("/api/forgot-password", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ email })
-                    });
-                    const data = await res.json();
-                    
-                    if (data.success) {
-                        alert("OTP sent to your email! (Check backend terminal for simulation)");
-                        document.getElementById('stepEmail').style.display = 'none';
-                        document.getElementById('stepOtp').style.display = 'block';
-                    } else {
-                        alert(data.error || "Email not found.");
-                    }
-                } catch(e) {
-                    alert("Error connecting to server.");
+                if (data.success) {
+                    document.getElementById('stepEmail').style.display = 'none';
+                    document.getElementById('stepOtp').style.display = 'block';
                 }
             }
 
@@ -368,7 +363,7 @@
                 if (!currentResetEmail) return alert('No email found to resend OTP.');
                 
                 try {
-                    const res = await fetch("/api/forgot-password", {
+                    const res = await fetch("/api/send-otp", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ email: currentResetEmail })
@@ -447,39 +442,35 @@
                 }
             }
 
-            document.getElementById("loginForm").addEventListener("submit", function (e) {
+            document.getElementById("loginForm").addEventListener("submit", async (e) => {
                 e.preventDefault();
 
                 const email = document.querySelector("#email").value;
                 const password = document.querySelector("#password").value;
 
-                fetch("/api/login", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ email, password }),
-                })
-                    .then((res) => res.json())
-                    .then((data) => {
-                        console.log(data); // debug ke liye
-
-                        // Ensure we handle either logical check
-                        if (data.success || data.token) {
-                            // ✅ user save karo
-                            localStorage.setItem("user", JSON.stringify(data.user));
-                            localStorage.setItem("token", data.token);
-
-                            // ✅ redirect karo
-                            window.location.href = "dashboard.html";
-                        } else {
-                            alert(data.message || data.error || "Login failed");
-                        }
-                    })
-                    .catch((err) => {
-                        console.error(err);
-                        alert("Something went wrong");
+                try {
+                    const res = await fetch("/api/login", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ email, password })
                     });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        alert("Login successful");
+                        localStorage.setItem("user", JSON.stringify(data.user));
+                        localStorage.setItem("token", data.token);
+                        window.location.href = "/dashboard.html";
+                    } else {
+                        alert(data.message || "Login failed");
+                    }
+
+                } catch (err) {
+                    alert("Server error");
+                }
             });
         </script>
 </body>

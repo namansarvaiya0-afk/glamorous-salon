@@ -238,8 +238,8 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Auth: Forgot Password
-app.post('/api/forgot-password', (req, res) => {
+// Auth: Send OTP
+app.post('/api/send-otp', (req, res) => {
     const { email } = req.body;
     executeQuery('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
         if (err || results.length === 0) return res.status(404).send({ error: 'User not found' });
@@ -287,7 +287,7 @@ app.post('/api/forgot-password', (req, res) => {
                 console.error('Email send error:', error);
                 return res.status(500).send({ error: 'Failed to send Email. Check SMTP credentials.' });
             }
-            res.send({ success: true, message: 'OTP sent to your email securely.' });
+            res.send({ success: true, message: 'OTP sent successful' });
         });
     });
 });
