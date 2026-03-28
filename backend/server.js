@@ -88,8 +88,9 @@ const executeQuery = (sql, params, callback) => {
             return callback(null, results);
         }
 
-        if (sqlLower.includes('select * from users')) {
-            return callback(null, data.users);
+        if (sqlLower.includes('select') && sqlLower.includes('from users')) {
+            const usersList = data.users.map(u => ({...u, role_val: u.role || 'client'}));
+            return callback(null, usersList);
         }
 
         if (sqlLower.includes('insert into users')) {
