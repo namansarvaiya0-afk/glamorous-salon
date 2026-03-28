@@ -249,7 +249,10 @@ app.post('/api/forgot-password', (req, res) => {
         // Set OTP to expire in 10 minutes
         otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 };
         
-        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        const emailUser = process.env.EMAIL_USER || 'namansarvaiya2004@gmail.com';
+        const emailPass = process.env.EMAIL_PASS || 'wrrn qjvr zqar xapc';
+
+        if (!emailUser || !emailPass) {
             console.log(`[EMAIL SEND SIMULATION - ADD EMAIL_USER & EMAIL_PASS to .env] OTP for ${email} is: ${otp}`);
             return res.send({ success: true, message: 'OTP simulated in console. Setup .env with EMAIL_USER and EMAIL_PASS to send real emails.' });
         }
@@ -257,13 +260,13 @@ app.post('/api/forgot-password', (req, res) => {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
+                user: emailUser,
+                pass: emailPass
             }
         });
 
         const mailOptions = {
-            from: `"Glamorous Studio Concierge" <${process.env.EMAIL_USER}>`,
+            from: `"Glamorous Studio Concierge" <${emailUser}>`,
             to: email,
             subject: 'Your Password Reset OTP Code - Glamorous Studio',
             html: `
