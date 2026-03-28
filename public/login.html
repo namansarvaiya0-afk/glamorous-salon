@@ -218,44 +218,29 @@
         }
 
         @media (max-width: 480px) {
+            body { padding: 15px; }
             .auth-card {
                 padding: 40px 25px;
                 border-radius: 20px;
                 max-width: 100%;
+                box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
             }
-            .header h1 {
-                font-size: 28px;
-            }
-            .header p {
-                font-size: 14px;
-            }
-            .header i {
-                font-size: 36px;
-            }
-            .input-group input {
-                padding: 16px 18px;
-                font-size: 16px;
-            }
-            .btn-luxury {
-                padding: 18px;
-                font-size: 15px;
-            }
-            .footer-links {
-                font-size: 13px;
-            }
-            #forgotPanel h3 {
-                font-size: 20px;
-            }
+            .header h1 { font-size: 30px; letter-spacing: -0.5px; }
+            .header p { font-size: 15px; }
+            .header i { font-size: 38px; margin-bottom: 20px; }
+            .input-group input { padding: 16px 18px; font-size: 16px; border-radius: 12px; }
+            .btn-luxury { padding: 18px; font-size: 16px; border-radius: 12px; height: 58px; }
+            .footer-links { font-size: 14px; margin-top: 30px; }
+            #forgotPanel h3 { font-size: 22px; }
         }
 
-        @media (max-width: 360px) {
-            .auth-card {
-                padding: 30px 18px;
-            }
-            .header h1 {
-                font-size: 24px;
-            }
+        /* Fixed issues for small height devices */
+        @media (max-height: 700px) {
+            body { align-items: flex-start; padding-top: 40px; }
+            .auth-card { padding: 30px 25px; }
+            .header { margin-bottom: 30px; }
         }
+
     </style>
 </head>
 

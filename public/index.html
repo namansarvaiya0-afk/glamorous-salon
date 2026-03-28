@@ -110,61 +110,76 @@
         .footer-links a { color: rgba(255,255,255,0.6); text-decoration: none; display: block; margin-bottom: 15px; transition: 0.3s; }
         .footer-links a:hover { color: var(--gold-primary); transform: translateX(5px); }
         
+        /* --- MOBILE OPTIMIZATIONS --- */
         @media (max-width: 1024px) {
             .navbar, .hero, .section, footer { padding-left: 40px; padding-right: 40px; }
             .hero h1 { font-size: 56px; }
             .grid-3 { grid-template-columns: repeat(2, 1fr); }
-            .f-grid { grid-template-columns: 1fr 1fr; }
         }
+
         @media (max-width: 768px) {
-            .navbar { padding: 15px 20px; flex-wrap: wrap; }
+            :root { --radius: 15px; }
+            .navbar { padding: 15px 25px; transition: 0.3s; }
             .nav-links { display: none; }
-            .nav-buttons { transform: scale(0.85); gap: 10px; margin-right: -10px; }
-            .hero { text-align: center; justify-content: center; }
+            .nav-buttons { display: none; } /* Hidden by default in mobile, shown in menu */
+            .mobile-toggle { display: block; z-index: 1001; }
+            
+            .hero { padding: 100px 20px 60px; text-align: center; min-height: auto; }
+            .hero-content { margin: 0 auto; }
+            .hero h1 { font-size: 42px; width: 100%; }
             .hero-image-wrap { display: none; }
-            .grid-3 { grid-template-columns: 1fr; }
-            .mobile-toggle { display: block; }
-            .nav-buttons { display: none; }
-            .navbar.mobile-open .mobile-menu {
-                display: flex;
-                flex-direction: column;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                right: 0;
-                background: white;
-                padding: 20px;
-                box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-                gap: 15px;
-            }
-            .navbar.mobile-open .mobile-menu a {
-                padding: 12px 0;
-                border-bottom: 1px solid #eee;
-                text-align: center;
-                color: var(--text-dark);
-                text-decoration: none;
-                font-weight: 500;
-            }
-            .navbar.mobile-open .nav-buttons { display: flex; flex-direction: column; gap: 10px; }
-            .navbar.mobile-open .nav-buttons a { text-align: center; }
-            .hero h1 { font-size: 40px; }
-            .hero p { font-size: 16px; }
+            .hero-buttons { flex-direction: column; gap: 15px; width: 100%; }
+            .hero-buttons .btn { width: 100%; justify-content: center; }
+
             .section { padding: 60px 20px; }
             .section-title h2 { font-size: 32px; }
+            .grid-3 { grid-template-columns: 1fr; gap: 25px; }
+            
+            footer { padding: 60px 20px 40px; border-radius: 40px 40px 0 0; }
             .f-grid { grid-template-columns: 1fr; gap: 40px; }
-            footer { padding: 60px 20px 30px; border-radius: 30px 30px 0 0; }
+            
             .gallery-wrap { grid-template-columns: 1fr; height: auto; }
-            .gallery-item { height: 250px; }
+            .gallery-item { height: 280px; }
         }
-        
+
         @media (max-width: 480px) {
-            .hero h1 { font-size: 32px; }
-            .section-title h2 { font-size: 26px; }
-            .section-title p { font-size: 14px; }
-            .feature-card { padding: 30px 20px; }
-            .s-content { padding: 20px; }
-            .s-price { font-size: 18px; }
+            .hero h1 { font-size: 34px; letter-spacing: -0.5px; }
+            .hero p { font-size: 16px; margin-bottom: 30px; }
+            .section-title h2 { font-size: 28px; }
+            .feature-card { padding: 40px 25px; }
+            
+            /* Better touch targets for mobile */
+            .btn { height: 55px; font-size: 15px; }
+            .navbar .logo { font-size: 22px; }
+            
+            /* Correcting iOS safe areas */
+            body { padding-bottom: env(safe-area-inset-bottom); }
         }
+
+        /* Mobile Menu Panel */
+        .mobile-menu {
+            position: fixed; top: 0; right: -100%; width: 85%; height: 100vh;
+            background: white; z-index: 1000; padding: 100px 30px 40px;
+            display: flex; flex-direction: column; gap: 20px;
+            box-shadow: -10px 0 40px rgba(0,0,0,0.1);
+            transition: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .navbar.mobile-open .mobile-menu { right: 0; }
+        .mobile-menu a {
+            font-size: 20px; font-weight: 600; text-decoration: none;
+            color: var(--black-rich); padding: 15px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .mobile-menu a::after { content: '\f105'; font-family: 'Font Awesome 6 Free'; font-weight: 900; opacity: 0.3; }
+        
+        .overlay-mask {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+            opacity: 0; pointer-events: none; z-index: 999; transition: 0.3s;
+            backdrop-filter: blur(4px);
+        }
+        .navbar.mobile-open .overlay-mask { opacity: 1; pointer-events: auto; }
+
         /* Loading Animation */
         .loading-spinner {
             width: 40px;
@@ -198,18 +213,26 @@
             <a href="login.html" class="btn btn-outline">Login</a>
             <a href="register.html" class="btn btn-primary">Start Journey</a>
         </div>
+        <div class="overlay-mask" onclick="toggleMobileMenu()"></div>
         <div class="mobile-menu" id="mobileMenu">
-            <a href="index.html">Home</a>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <a href="index.html" class="logo" style="border: none; padding: 0;">
+                    <i class="fas fa-spa"></i> <span>Studio</span>
+                </a>
+                <i class="fas fa-times" onclick="toggleMobileMenu()" style="font-size: 24px; color: var(--text-dark);"></i>
+            </div>
+            <a href="index.html" onclick="toggleMobileMenu()">Home</a>
             <a href="services.html">Services</a>
-            <a href="#features">About</a>
+            <a href="#features" onclick="toggleMobileMenu()">About</a>
             <a href="services.html?tab=combo">Experience</a>
-            <a href="#contact">Contact</a>
-            <div class="nav-buttons" style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
-                <a href="login.html" class="btn btn-outline" style="text-align: center;">Login</a>
-                <a href="register.html" class="btn btn-primary" style="text-align: center;">Start Journey</a>
+            <a href="#contact" onclick="toggleMobileMenu()">Contact</a>
+            <div style="margin-top: auto; display: grid; gap: 15px;">
+                <a href="login.html" class="btn btn-outline" style="justify-content: center; border-radius: 12px; height: 55px;">Sign In</a>
+                <a href="register.html" class="btn btn-primary" style="justify-content: center; border-radius: 12px; height: 55px;">Join the Studio</a>
             </div>
         </div>
         <i class="fas fa-bars mobile-toggle" onclick="toggleMobileMenu()"></i>
+
     </nav>
 
     <section class="hero" id="home">

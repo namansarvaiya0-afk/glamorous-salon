@@ -166,14 +166,33 @@
             box-shadow: 0 0 0 4px rgba(233, 30, 99, 0.1);
         }
 
-        @media (max-width: 768px) {
+        /* --- LUXURY MOBILE ADAPTATIONS --- */
+        @media (max-width: 1024px) {
             .navbar { padding: 15px 30px; }
-            .tabs { overflow-x: auto; justify-content: flex-start; padding-bottom: 10px; }
-            .tab-btn { white-space: nowrap; }
-            .selection-tray { bottom: 15px; padding: 12px 20px; font-size: 14px; }
-            .tray-left { gap: 10px; }
-            .tray-total { font-size: 18px; }
-            .grid-cards { grid-template-columns: 1fr; }
+            .grid-cards { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 12px 20px; }
+            .logo span { font-size: 22px; }
+            
+            .page-header { margin-bottom: 30px; }
+            .page-header h1 { font-size: 34px; }
+            .page-header p { font-size: 15px; }
+
+            .tabs { 
+                justify-content: flex-start; 
+                overflow-x: auto; 
+                padding: 0 10px 15px; 
+                gap: 10px;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+            }
+            .tabs::-webkit-scrollbar { display: none; }
+            .tab-btn { padding: 10px 24px; font-size: 13px; white-space: nowrap; }
+
+            .grid-cards { grid-template-columns: 1fr; gap: 20px; }
+            .premium-card { border-radius: 20px; }
             .card-img-wrap { height: 180px; }
             .card-content { padding: 25px; }
             .card-content h3 { font-size: 20px; }

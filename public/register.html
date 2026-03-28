@@ -102,15 +102,23 @@
         .alert-success { background: #ecfdf5; color: #059669; border: 1px solid #d1fae5; }
 
         @media (max-width: 480px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .full-width { grid-column: span 1; }
-            .auth-card { padding: 30px 20px; border-radius: 20px; }
-            .header h1 { font-size: 26px; }
+            body { padding: 15px; }
+            .form-grid { grid-template-columns: 1fr; gap: 10px; }
+            .auth-card { padding: 35px 20px; border-radius: 20px; box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4); }
+            .header h1 { font-size: 30px; letter-spacing: -0.5px; }
             .header p { font-size: 14px; }
-            .input-group input { padding: 14px 16px; font-size: 16px; }
-            .req-box { grid-template-columns: 1fr; }
-            .btn-luxury { padding: 16px; font-size: 14px; }
+            .input-group label { font-size: 11px; margin-bottom: 5px; }
+            .input-group input { padding: 16px; font-size: 16px; border-radius: 12px; }
+            .req-box { grid-template-columns: 1fr; padding: 10px; font-size: 11px; }
+            .btn-luxury { padding: 18px; font-size: 16px; border-radius: 12px; height: 58px; }
         }
+
+        /* Fixed issues for small height devices */
+        @media (max-height: 800px) {
+            body { align-items: flex-start; padding-top: 30px; }
+            .auth-card { padding: 30px 20px; }
+        }
+
     </style>
 </head>
 <body>
