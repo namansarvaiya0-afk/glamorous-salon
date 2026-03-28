@@ -16,7 +16,7 @@ app.use(express.json());
 
 // Default route (homepage)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 const DB_JSON_PATH = path.join(__dirname, 'db.json');
 
@@ -153,7 +153,7 @@ initDB();
 
 // Middleware
 // Serve static files
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.static(path.join(__dirname, "../public")));
 
 // --- API ROUTES ---
 
@@ -341,9 +341,9 @@ app.put('/api/bookings/:id/cancel', authenticateToken, (req, res) => {
 app.get('*', (req, res) => {
     const filePath = req.path === '/' ? 'index.html' : req.path;
     if (filePath.includes('.')) {
-        res.sendFile(path.join(__dirname, filePath));
+        res.sendFile(path.join(__dirname, "../public", filePath));
     } else {
-        res.sendFile(path.join(__dirname, filePath + '.html'));
+        res.sendFile(path.join(__dirname, "../public", filePath + '.html'));
     }
 });
 
