@@ -9,21 +9,15 @@ const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 
-const otpStore = new Map();
+// OTP store is handled globally as per user request
 
-// Optimized Transporter Configuration
+
 const transporter = nodemailer.createTransport({
     service: "gmail",
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
     auth: {
-        user: "namansarvaiya2004@gmail.com",
-        pass: "wrrnqjvrzqarxapc"
-    },
-    connectionTimeout: 10000, // 10 seconds timeout
-    greetingTimeout: 5000,
-    socketTimeout: 15000
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
 });
 
 
@@ -261,71 +255,67 @@ app.post('/api/login', (req, res) => {
 
 
 
-// --- Forgot Password APIs (Phone Based) ---
+// --- Forgot Password APIs (Email OTP) ---
 
-// 1. Send OTP via Text (Simulation)
+// 1. Send OTP
 app.post("/api/forgot-password", async (req, res) => {
-    const { phone } = req.body;
-    console.log(`[Forgot Password] SMS Request for: ${phone}`);
-    
-    if (!phone) return res.status(400).json({ error: "Phone number is required" });
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email required" });
 
-    // Check if user exists by phone
-    executeQuery('SELECT * FROM users WHERE phone = ?', [phone], async (err, results) => {
-        if (err) return res.status(500).json({ error: "Database error" });
-        if (results.length === 0) return res.status(404).json({ error: "No account found with this phone number" });
+    const otp = Math.floor(100000 + Math.random() * 900000);
 
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiresAt = Date.now() + 5 * 60 * 1000;
+    // Store OTP temporarily
+    global.otpStore = global.otpStore || {};
+    global.otpStore[email] = otp.toString();
 
-        otpStore.set(phone, { otp, expiresAt });
+    try {
+        await transporter.sendMail({
+            to: email,
+            subject: "Password Reset OTP",
+            html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                    <h2 style="color: #ff2d75;">Glamorous Studio Recovery</h2>
+                    <p>Your verification code is:</p>
+                    <h1 style="font-size: 32px; color: #333; letter-spacing: 5px;">${otp}</h1>
+                    <p>This OTP is valid for 10 minutes.</p>
+                   </div>`
+        });
 
-        // SMS Simulation
-        console.log("------------------------------------------");
-        console.log(`📱 SMS SENT TO: ${phone}`);
-        console.log(`🔑 YOUR SECURE CODE: ${otp}`);
-        console.log("------------------------------------------");
+        console.log("OTP for", email, ":", otp); // debug
+        res.json({ message: "OTP sent to email" });
 
-        res.json({ success: true, message: "Verification code sent via SMS (Simulation)" });
-    });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ error: "Email not sent" });
+    }
 });
 
 // 2. Verify OTP
 app.post("/api/verify-otp", (req, res) => {
-    const { phone, otp } = req.body;
-    const record = otpStore.get(phone);
-
-    if (!record) return res.status(400).json({ error: "Session expired." });
-    if (Date.now() > record.expiresAt) {
-        otpStore.delete(phone);
-        return res.status(400).json({ error: "Code expired." });
+    const { email, otp } = req.body;
+    if (global.otpStore && global.otpStore[email] == otp) {
+        res.json({ message: "OTP verified" });
+    } else {
+        res.status(400).json({ error: "Invalid OTP" });
     }
-    if (record.otp !== otp) return res.status(400).json({ error: "Invalid code." });
-
-    res.json({ success: true, message: "Verification successful" });
 });
 
 // 3. Reset Password
 app.post("/api/reset-password", async (req, res) => {
-    const { phone, otp, newPassword } = req.body;
-    const record = otpStore.get(phone);
-
-    if (!record || record.otp !== otp || Date.now() > record.expiresAt) {
-        return res.status(400).json({ error: "Unauthorized request" });
-    }
-
+    const { email, newPassword } = req.body;
+    
     try {
         const hashedPassword = await bcrypt.hash(newPassword, 8);
-        executeQuery('UPDATE users SET password = ? WHERE phone = ?', [hashedPassword, phone], (err) => {
-            if (err) return res.status(500).json({ error: "DB Update failed" });
+        executeQuery('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email], (err) => {
+            if (err) return res.status(500).json({ error: "Database update failed" });
             
-            otpStore.delete(phone);
-            res.json({ success: true, message: "Password updated successfully" });
+            if (global.otpStore) delete global.otpStore[email];
+            res.json({ message: "Password updated successfully" });
         });
     } catch (e) {
-        res.status(500).json({ error: "Process error" });
+        res.status(500).json({ error: "Processing error" });
     }
 });
+
 
 
 // --- Auth: Register ---

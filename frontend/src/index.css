@@ -1,0 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap');
+
+:root {
+  --pink-primary: #ff2d75;
+  --pink-soft: #ff85a1;
+  --gold-primary: #d4af37;
+  --gold-soft: #f4d03f;
+  --white: #ffffff;
+  --black-rich: #0a0a0b;
+  --text-dark: #1e293b;
+  --text-muted: #64748b;
+  --bg-light: #f8fafc;
+  --glass: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.25);
+  --shadow-premium: 0 10px 40px -10px rgba(0,0,0,0.1);
+  --radius: 30px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { 
+  font-family: 'Outfit', sans-serif; 
+  background: var(--bg-light); 
+  color: var(--text-dark); 
+  overflow-x: hidden; 
+}
+h1, h2, h3, .logo { font-family: 'Playfair Display', serif; }
+
+.btn { 
+  padding: 12px 28px; 
+  border-radius: 50px; 
+  font-weight: 600; 
+  font-size: 14px; 
+  cursor: pointer; 
+  border: none; 
+  transition: 0.4s; 
+  display: inline-flex; 
+  align-items: center; 
+  gap: 10px; 
+  text-decoration: none; 
+  letter-spacing: 0.5px; 
+}
+
+.btn-primary { 
+  background: var(--pink-primary); 
+  color: white; 
+  box-shadow: 0 10px 20px -5px rgba(255, 45, 117, 0.3); 
+}
+
+.btn-outline { 
+  background: transparent; 
+  color: var(--pink-primary); 
+  border: 2px solid rgba(255, 45, 117, 0.15); 
+}
