@@ -9,13 +9,14 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();   // ✅ ONLY ONCE
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 
 app.use(cors());
 app.use(express.json());
 
+// Default route (homepage)
 app.get("/", (req, res) => {
-    res.send("Server is running");
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 const DB_JSON_PATH = path.join(__dirname, 'db.json');
 
@@ -151,7 +152,8 @@ const executeQuery = (sql, params, callback) => {
 initDB();
 
 // Middleware
-app.use(express.static(__dirname));
+// Serve static files
+app.use(express.static(path.join(__dirname, "public")));
 
 // --- API ROUTES ---
 
@@ -347,8 +349,7 @@ app.get('*', (req, res) => {
 
 function startServer(port) {
     const server = app.listen(port, () => {
-        console.log("Server running on port " + port);
-        console.log(`  http://localhost:${port}`);
+        console.log(`Server running on port ${port}`);
     });
 
     server.on('error', (err) => {
