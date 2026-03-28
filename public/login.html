@@ -291,7 +291,7 @@
             
             <div id="stepEmail">
                 <div class="input-group">
-                    <input type="email" id="resetEmail" placeholder="Enter your registered email" required>
+                    <input type="email" id="email" placeholder="Enter email" required>
                 </div>
                 <button type="button" class="btn-luxury" onclick="sendOTP()">Send OTP <i class="fas fa-envelope"></i></button>
             </div>
@@ -339,39 +339,16 @@
             let validOTP = '';
 
             async function sendOTP() {
-                console.log("clicked"); // Debug trace
                 const email = document.getElementById("email").value;
+
+                console.log("EMAIL:", email);
 
                 if (!email) {
                     alert("Enter email");
                     return;
                 }
 
-                try {
-                    const res = await fetch("/api/send-otp", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ email })
-                    });
-
-                    const data = await res.json();
-
-                    console.log(data); // 👈 added as requested
-
-                    alert(data.message || "OTP sent");
-                    
-                    if (data.success) {
-                        currentResetEmail = email; // Store for verification/resend
-                        document.getElementById('stepEmail').style.display = 'none';
-                        document.getElementById('stepOtp').style.display = 'block';
-                    }
-
-                } catch (err) {
-                    console.error(err);
-                    alert("Error sending OTP");
-                }
+                alert("OTP sending..."); // test
             }
 
             async function resendOTP(e) {
