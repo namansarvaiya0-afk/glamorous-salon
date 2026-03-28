@@ -393,6 +393,13 @@ app.get('/api/admin/users', authenticateAdmin, (req, res) => {
     });
 });
 
+app.get('/api/clients', (req, res) => {
+    executeQuery('SELECT first_name as name, email FROM users', (err, results) => {
+        if (err) return res.status(500).send(err);
+        res.send(results);
+    });
+});
+
 // Bookings
 app.post('/api/bookings', (req, res) => {
     const { userEmail, serviceName, price, date, time } = req.body;
