@@ -7,6 +7,9 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
+const nodemailer = require('nodemailer');
+
+const otpStore = {};
 
 const app = express();   // ✅ ONLY ONCE
 const PORT = process.env.PORT || 10000;
@@ -91,6 +94,12 @@ const executeQuery = (sql, params, callback) => {
         if (sqlLower.includes('select') && sqlLower.includes('from users')) {
             const usersList = data.users.map(u => ({...u, role_val: u.role || 'client'}));
             return callback(null, usersList);
+        }
+
+        if (sqlLower.includes('update users set password')) {
+            data.users = data.users.map(u => u.email === params[1] ? { ...u, password: params[0] } : u);
+            saveJsonData(data);
+            return callback(null);
         }
 
         if (sqlLower.includes('insert into users')) {
@@ -227,6 +236,51 @@ app.post('/api/login', (req, res) => {
         console.log(`Login successful: ${email} (${user.role})`);
         const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'GLAMOUR_STUDIO_SECRET_2024');
         res.send({ success: true, user: { id: user.id, email: user.email, name: user.first_name, role: user.role }, token });
+    });
+});
+
+// Auth: Forgot Password
+app.post('/api/forgot-password', (req, res) => {
+    const { email } = req.body;
+    executeQuery('SELECT * FROM users WHERE email = ?', [email], (err, results) => {
+        if (err || results.length === 0) return res.status(404).send({ error: 'User not found' });
+        
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        // Set OTP to expire in 10 minutes
+        otpStore[email] = { otp, expires: Date.now() + 10 * 60 * 1000 };
+        
+        // As actual SMTP details are not provided by the user, we log it and mock the send
+        console.log(`[EMAIL SEND SIMULATION] OTP for ${email} is: ${otp}`);
+        
+        res.send({ success: true, message: 'OTP sent to your email.' });
+    });
+});
+
+app.post('/api/verify-otp', (req, res) => {
+    const { email, otp } = req.body;
+    const record = otpStore[email];
+    
+    if (!record || record.expires < Date.now() || record.otp !== otp) {
+        return res.status(400).send({ error: 'Invalid or expired OTP' });
+    }
+    
+    res.send({ success: true, message: 'OTP verified' });
+});
+
+app.post('/api/reset-password', async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+    const record = otpStore[email];
+    
+    if (!record || record.otp !== otp) {
+        return res.status(400).send({ error: 'Unauthorized request or expired OTP' });
+    }
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 8);
+    executeQuery('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email], (err) => {
+        if (err) return res.status(500).send(err);
+        
+        delete otpStore[email];
+        res.send({ success: true, message: 'Password updated successfully' });
     });
 });
 
