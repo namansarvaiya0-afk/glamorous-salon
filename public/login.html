@@ -338,17 +338,20 @@
             let currentResetEmail = '';
             let validOTP = '';
 
-            async function sendOTP() {
-                const email = document.getElementById("email").value;
+            function sendOTP() {
+                const emailInput = document.getElementById("email");
 
-                console.log("EMAIL:", email);
+                console.log("Element:", emailInput);
+                console.log("Value:", emailInput.value);
+
+                const email = emailInput.value.trim();
 
                 if (!email) {
                     alert("Enter email");
                     return;
                 }
 
-                alert("OTP sending..."); // test
+                alert("Email OK: " + email);
             }
 
             async function resendOTP(e) {
