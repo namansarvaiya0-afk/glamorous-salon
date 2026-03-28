@@ -9,7 +9,22 @@ const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 
-const otpStore = new Map(); // Using Map for better performance and clear expiry logic
+const otpStore = new Map();
+
+// Optimized Transporter Configuration
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+        user: "namansarvaiya2004@gmail.com",
+        pass: "wrrnqjvrzqarxapc"
+    },
+    connectionTimeout: 10000, // 10 seconds timeout
+    greetingTimeout: 5000,
+    socketTimeout: 15000
+});
 
 
 const app = express();   // ✅ ONLY ONCE
@@ -246,28 +261,30 @@ app.post('/api/login', (req, res) => {
 // 1. Send OTP
 app.post("/api/forgot-password", async (req, res) => {
     const { email } = req.body;
+    console.log(`[Forgot Password] Request received for: ${email}`);
+    
     if (!email) return res.status(400).json({ error: "Email is required" });
 
     // Check if user exists
-    executeQuery('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
-        if (err) return res.status(500).json({ error: "Database error" });
-        if (results.length === 0) return res.status(404).json({ error: "No account found with this email" });
+    executeQuery('SELECT * FROM users WHERE email = ?', [email.toLowerCase()], async (err, results) => {
+        if (err) {
+            console.error("[DB Error]", err);
+            return res.status(500).json({ error: "Database error" });
+        }
+        
+        if (results.length === 0) {
+            console.log(`[Forgot Password] No user found for: ${email}`);
+            return res.status(404).json({ error: "No account found with this email" });
+        }
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+        const expiresAt = Date.now() + 5 * 60 * 1000;
 
-        otpStore.set(email, { otp, expiresAt });
-
-        // Setup Transporter (Using a generic one, but user should configure their own later)
-        const transporter = nodemailer.createTransport({
-            service: "gmail",
-            auth: {
-                user: "namansarvaiya2004@gmail.com",
-                pass: "wrrnqjvrzqarxapc"
-            }
-        });
+        otpStore.set(email.toLowerCase(), { otp, expiresAt });
+        console.log(`[Forgot Password] Generated OTP for ${email}: ${otp}`);
 
         try {
+            console.log(`[Forgot Password] Attempting to send email to: ${email}`);
             await transporter.sendMail({
                 from: '"Glamorous Studio" <namansarvaiya01@gmail.com>',
                 to: email,
@@ -288,10 +305,11 @@ app.post("/api/forgot-password", async (req, res) => {
                     </div>
                 `
             });
-            res.json({ success: true, message: "OTP sent successfully" });
+            console.log(`[Forgot Password] Email sent successfully to: ${email}`);
+            return res.json({ success: true, message: "OTP sent successfully" });
         } catch (mailErr) {
-            console.error("Mail Error:", mailErr);
-            res.status(500).json({ error: "Failed to send email. Try again later." });
+            console.error("[Mail Error]", mailErr);
+            return res.status(500).json({ error: "Email service failed. Please check your internet or try again later." });
         }
     });
 });
