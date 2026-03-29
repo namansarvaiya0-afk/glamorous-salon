@@ -299,30 +299,36 @@ app.get('/api/clients', (req, res) => {
 });
 
 // Bookings
-app.post('/api/bookings', (req, res) => {
-    const { userEmail, serviceName, price, date, time, paymentId, paymentMethod } = req.body;
-    
-    if (!userEmail || !serviceName || !date || !time) {
-        return res.status(400).send({ error: 'Please provide all required fields and login first' });
+app.post('/api/bookings', async (req, res) => {
+    try {
+        const { userEmail, serviceName, price, date, time, paymentId, paymentMethod } = req.body;
+        
+        if (!userEmail || !serviceName || !date || !time) {
+            return res.status(400).json({ error: 'Please provide all required fields and login first' });
+        }
+        
+        const status = paymentMethod === 'pay_at_salon' ? 'Pending' : 'Confirmed';
+        const [result] = await db.query(
+            'INSERT INTO bookings (user_email, service_name, price, date, time, status) VALUES (?, ?, ?, ?, ?, ?)',
+            [userEmail, serviceName, price, date, time, status]
+        );
+        
+        res.status(201).json({ message: 'Booking confirmed', id: result.insertId });
+    } catch (err) {
+        console.error('Booking Error:', err);
+        res.status(500).json({ error: 'Booking failed. Please try again.' });
     }
-    
-    const status = paymentMethod === 'pay_at_salon' ? 'Pending' : 'Confirmed';
-    executeQuery('INSERT INTO bookings (user_email, service_name, price, date, time, status) VALUES (?, ?, ?, ?, ?, ?)',
-        [userEmail, serviceName, price, date, time, status], (err, results) => {
-            if (err) {
-                console.error('Booking Error:', err);
-                return res.status(500).send({ error: 'Booking failed. Please try again.' });
-            }
-            res.status(201).send({ message: 'Booking confirmed', id: results.insertId });
-        });
 });
 
-app.get('/api/user/bookings', (req, res) => {
-    const email = req.query.email;
-    executeQuery('SELECT * FROM bookings WHERE user_email = ?', [email], (err, results) => {
-        if (err) return res.status(500).send(err);
-        res.send(results);
-    });
+app.get('/api/user/bookings', async (req, res) => {
+    try {
+        const email = req.query.email;
+        const [results] = await db.query('SELECT * FROM bookings WHERE user_email = ?', [email]);
+        res.json(results);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Failed to fetch bookings' });
+    }
 });
 
 app.put('/api/bookings/:id/cancel', authenticateToken, (req, res) => {
