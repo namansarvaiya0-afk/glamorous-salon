@@ -12,18 +12,18 @@ const cron = require('node-cron');
 const db = require('./db');
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
 });
 
 // OTP Generator
 function generateOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+    return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 const app = express();   // ✅ ONLY ONCE
@@ -39,12 +39,12 @@ app.use('/api/payment', paymentRoutes);
 
 // Default route (homepage)
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/index.html"));
+    res.sendFile(path.join(__dirname, "../public/index.html"));
 });
 const DB_JSON_PATH = path.join(__dirname, 'db.json');
 
 let useJson = false;
-let db;
+
 
 // Function to handle JSON file operations
 const getJsonData = () => JSON.parse(fs.readFileSync(DB_JSON_PATH, 'utf8'));
@@ -119,7 +119,7 @@ const executeQuery = (sql, params, callback) => {
         }
 
         if (sqlLower.includes('select') && sqlLower.includes('from users')) {
-            const usersList = data.users.map(u => ({...u, role_val: u.role || 'client'}));
+            const usersList = data.users.map(u => ({ ...u, role_val: u.role || 'client' }));
             return callback(null, usersList);
         }
 
@@ -240,11 +240,11 @@ app.post('/api/login', async (req, res) => {
 
         console.log(`Login successful: ${email} (${user.role})`);
         const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'GLAMOUR_SECRET');
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: "Login successful",
-            user: { id: user.id, email: user.email, first_name: user.first_name, role: user.role }, 
-            token 
+            user: { id: user.id, email: user.email, first_name: user.first_name, role: user.role },
+            token
         });
 
     } catch (err) {
