@@ -242,6 +242,7 @@
                 const data = await res.json();
                 
                 if (res.ok) {
+                    localStorage.setItem('otpVerified', 'true');
                     alert(data.message || 'OTP Verified! Redirecting...');
                     setTimeout(() => window.location.href = 'reset-password.html', 1500);
                 } else {

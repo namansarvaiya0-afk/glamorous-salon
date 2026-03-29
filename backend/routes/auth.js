@@ -80,6 +80,9 @@ router.post("/verify-otp", async (req, res) => {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
+    // ✅ OTP verified successfully, now mark it to allow password reset
+    await db.query("UPDATE users SET otp = 'VERIFIED' WHERE email = ?", [email]);
+
     res.json({ message: "OTP verified" });
 
   } catch (err) {
@@ -93,6 +96,12 @@ router.post("/verify-otp", async (req, res) => {
 router.post("/reset-password", async (req, res) => {
   try {
     const { email, newPassword } = req.body;
+
+    // 🛑 Security Check: Ensure OTP was verified first
+    const [user] = await db.query("SELECT otp FROM users WHERE email = ?", [email]);
+    if (!user.length || user[0].otp !== 'VERIFIED') {
+      return res.status(403).json({ message: "Access denied. Verify OTP first." });
+    }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
