@@ -353,7 +353,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="action-btn primary" style="padding: 20px;">Confirm & Secure Booking</button>
+                <button type="submit" class="action-btn primary confirm-booking-btn" style="padding: 20px;">Confirm & Secure Booking</button>
             </form>
         </div>
     </div>
@@ -716,25 +716,47 @@
         }
 
         async function payAtSalon(bookingData) {
-            closeModal('bookingModal');
+            const btn = document.querySelector('.confirm-booking-btn');
+            const originalText = btn ? btn.innerHTML : 'Book Appointment';
+            if (btn) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Booking...';
+                btn.disabled = true;
+            }
+            
             try {
-                console.log('Pay at Salon - Booking data:', bookingData);
                 const response = await fetch('/api/bookings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...bookingData, paymentMethod: 'pay_at_salon' })
+                    body: JSON.stringify({ 
+                        userEmail: bookingData.userEmail,
+                        serviceName: bookingData.serviceName,
+                        price: bookingData.price,
+                        date: bookingData.date,
+                        time: bookingData.time,
+                        paymentMethod: 'pay_at_salon'
+                    })
                 });
-                const data = await response.json();
 
-                if (response.ok) {
+                const data = await response.json();
+                console.log('Booking response:', response.status, data);
+
+                if (response.status === 201 || response.status === 200) {
+                    closeModal('bookingModal');
                     alert('Booking Confirmed! Pay ₹' + bookingData.price + ' at the salon.');
-                    window.location.href = 'dashboard.html';
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 500);
                 } else {
                     alert(data.error || 'Booking failed. Please try again.');
                 }
             } catch (error) {
                 console.error('Error:', error);
                 alert('Connection error. Please try again.');
+            } finally {
+                if (btn) {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
             }
         }
 
