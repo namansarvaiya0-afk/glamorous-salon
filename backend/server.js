@@ -11,12 +11,10 @@ const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const db = require("./db");
 
-// 🦷 Database Connection Ritual
 db.getConnection()
-    .then(() => console.log("✅ DB Connected Successfully to Sanctuary"))
+    .then(() => console.log("✅ DB Connected Successfully"))
     .catch(err => {
-        console.error("❌ DB Ritual Failed:", err.message);
-        console.log("👉 Tip: Ensure MySQL is running on port 3306");
+        console.error("❌ DB Connection Failed:", err.message);
     });
 
 const transporter = nodemailer.createTransport({
@@ -34,8 +32,9 @@ function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-const app = express();   // ✅ ONLY ONCE
-const PORT = process.env.PORT || 10000;
+const app = express();
+const PORT = process.env.PORT || 8080;
+const HOST = process.env.HOST || '0.0.0.0';
 
 app.use(cors());
 app.use(express.json());
@@ -431,9 +430,8 @@ cron.schedule("*/5 * * * *", () => {
 });
 
 function startServer(port) {
-    const host = process.env.HOST || '0.0.0.0';
-    const server = app.listen(port, host, () => {
-        console.log(`Server running on ${host}:${port}`);
+    const server = app.listen(port, HOST, () => {
+        console.log(`Server running on ${HOST}:${port}`);
     });
 
     server.on('error', (err) => {
