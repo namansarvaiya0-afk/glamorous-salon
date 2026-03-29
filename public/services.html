@@ -347,7 +347,7 @@
                             <span>Pay Now</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 10px; padding: 15px; border: 2px solid #e2e8f0; border-radius: 15px; cursor: pointer;">
-                            <input type="radio" name="payment" value="salon">
+                            <input type="radio" name="payment" value="pay_at_salon">
                             <span>Pay at Salon</span>
                         </label>
                     </div>
@@ -623,7 +623,7 @@
             if (paymentMethod === 'online') {
                 await initiateOnlinePayment(bookingData);
             } else {
-                await submitBooking(bookingData);
+                await payAtSalon(bookingData);
             }
         }
 
