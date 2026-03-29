@@ -8,7 +8,7 @@ RUN npm install
 COPY backend/ ./backend/
 COPY public/ ./public/
 
-EXPOSE 10000
+EXPOSE 8080
 
 WORKDIR /app/backend
 CMD ["npm", "start"]
