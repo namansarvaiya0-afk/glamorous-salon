@@ -303,10 +303,8 @@ app.post('/api/bookings', async (req, res) => {
     try {
         const { userEmail, serviceName, price, date, time, paymentId, paymentMethod } = req.body;
         
-        console.log('Booking request:', { userEmail, serviceName, price, date, time, paymentMethod });
-        
         if (!userEmail || !serviceName || !date || !time) {
-            return res.status(400).json({ error: 'Please provide all required fields and login first' });
+            return res.status(400).json({ success: false, error: 'Please provide all required fields' });
         }
         
         const status = paymentMethod === 'pay_at_salon' ? 'Pending' : 'Confirmed';
@@ -316,10 +314,10 @@ app.post('/api/bookings', async (req, res) => {
             [userEmail, serviceName, finalPrice, date, time, status]
         );
         
-        res.status(201).json({ message: 'Booking confirmed', id: result.insertId });
+        res.status(201).json({ success: true, message: 'Booking confirmed', id: result.insertId });
     } catch (err) {
         console.error('Booking Error:', err);
-        res.status(500).json({ error: 'Booking failed. Please try again.' });
+        res.status(500).json({ success: false, error: 'Booking failed. Please try again.' });
     }
 });
 

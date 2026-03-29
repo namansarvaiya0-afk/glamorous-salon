@@ -724,23 +724,29 @@
             }
             
             try {
+                const payload = {
+                    userEmail: bookingData.userEmail,
+                    serviceName: bookingData.serviceName,
+                    price: Number(bookingData.price),
+                    date: bookingData.date,
+                    time: bookingData.time,
+                    paymentMethod: 'pay_at_salon'
+                };
+                
+                console.log('Sending booking:', payload);
+                
                 const response = await fetch('/api/bookings', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        userEmail: bookingData.userEmail,
-                        serviceName: bookingData.serviceName,
-                        price: bookingData.price,
-                        date: bookingData.date,
-                        time: bookingData.time,
-                        paymentMethod: 'pay_at_salon'
-                    })
+                    headers: { 
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await response.json();
                 console.log('Booking response:', response.status, data);
 
-                if (response.status === 201 || response.status === 200) {
+                if (response.ok || data.success) {
                     closeModal('bookingModal');
                     alert('Booking Confirmed! Pay ₹' + bookingData.price + ' at the salon.');
                     setTimeout(() => {
