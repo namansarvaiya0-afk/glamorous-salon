@@ -8,20 +8,23 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
+const cron = require('node-cron');
 
 // OTP store is handled globally as per user request
 
 
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, // important
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
 });
 
+// OTP Generator
+function generateOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 const app = express();   // ✅ ONLY ONCE
 const PORT = process.env.PORT || 10000;
@@ -47,7 +50,7 @@ const initDB = () => {
     const connection = mysql.createConnection({
         host: process.env.DB_HOST || 'localhost',
         user: process.env.DB_USER || 'root',
-        password: process.env.DB_PASS || 'root'
+        password: process.env.DB_PASS !== undefined ? process.env.DB_PASS : ''
     });
 
     connection.connect(err => {
@@ -70,10 +73,12 @@ function setupMySQLSchema() {
             const createUsers = `CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, first_name VARCHAR(255), last_name VARCHAR(255), email VARCHAR(255) UNIQUE, phone VARCHAR(20), password VARCHAR(255), role ENUM('client', 'admin') DEFAULT 'client', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
             const createServices = `CREATE TABLE IF NOT EXISTS services (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), price DECIMAL(10,2), duration INT, category VARCHAR(100), description TEXT, image TEXT)`;
             const createBookings = `CREATE TABLE IF NOT EXISTS bookings (id INT AUTO_INCREMENT PRIMARY KEY, user_email VARCHAR(255), service_name VARCHAR(255), price DECIMAL(10,2), date DATE, time TIME, status ENUM('Pending', 'Confirmed', 'Completed', 'Cancelled') DEFAULT 'Pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
+            const createOTP = `CREATE TABLE IF NOT EXISTS otp_verification (id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) NOT NULL, otp VARCHAR(255) NOT NULL, expiry BIGINT NOT NULL, is_verified BOOLEAN DEFAULT FALSE, attempts INT DEFAULT 0, last_sent BIGINT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
 
             db.query(createUsers);
             db.query(createServices);
-            db.query(createBookings, () => {
+            db.query(createBookings);
+            db.query(createOTP, () => {
                 console.log('MySQL Schema Verified.');
                 seedAdmin();
                 seedDefaultServices();
@@ -260,62 +265,152 @@ app.post('/api/login', (req, res) => {
 // --- Forgot Password APIs (Email OTP) ---
 
 // 1. Send OTP
-app.post("/api/forgot-password", async (req, res) => {
+app.post("/api/send-otp", async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: "Email required" });
 
-    const otp = Math.floor(100000 + Math.random() * 900000);
+    executeQuery('SELECT * FROM users WHERE email = ?', [email], async (err, authResults) => {
+        if (err) return res.status(500).json({ error: "Database error" });
+        if (authResults.length === 0) return res.status(404).json({ error: "Account not found with this email" });
 
-    // Store OTP temporarily
-    global.otpStore = global.otpStore || {};
-    global.otpStore[email] = otp.toString();
+        const otp = generateOTP();
+        const expiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+        const now = Date.now();
 
-    try {
-        await transporter.sendMail({
-            from: "namansarvaiya0@gmail.com",
-            to: email,
-            subject: "Password Reset OTP",
-            html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                    <h2 style="color: #ff2d75;">Glamorous Studio Recovery</h2>
-                    <p>Your verification code is:</p>
-                    <h1 style="font-size: 32px; color: #333; letter-spacing: 5px;">${otp}</h1>
-                    <p>This OTP is valid for 10 minutes.</p>
-                   </div>`
-        });
+        const sendEmailPayload = async () => {
+            try {
+                await transporter.sendMail({
+                    from: process.env.EMAIL_USER,
+                    to: email,
+                    subject: "Password Reset OTP - Glamorous Salon",
+                    html: `<div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                            <h2 style="color: #ff2d75;">Glamorous Studio Recovery</h2>
+                            <p>Your verification code is:</p>
+                            <h1 style="font-size: 32px; color: #333; letter-spacing: 5px;">${otp}</h1>
+                            <p>This OTP is valid for <strong>5 minutes</strong>.</p>
+                           </div>`
+                });
+                console.log("OTP sent for", email);
+                res.json({ message: "OTP sent to email" });
+            } catch (err) {
+                console.error("Email send error:", err);
+                res.status(500).json({ error: "Email not sent" });
+            }
+        };
 
-        console.log("OTP for", email, ":", otp); // debug
-        res.json({ message: "OTP sent to email" });
+        if (!useJson && db) {
+            db.query("SELECT * FROM otp_verification WHERE email = ? ORDER BY created_at DESC LIMIT 1", [email], async (err, results) => {
+                if (err) return res.status(500).json({ error: "DB Error" });
+                
+                let attempts = 0;
+                if (results && results.length > 0) {
+                    const record = results[0];
+                    if (now - record.last_sent < 30000) {
+                        return res.status(429).json({ error: "Wait before retry" });
+                    }
+                    if (record.attempts >= 5) {
+                        return res.status(429).json({ error: "Too many attempts" });
+                    }
+                    attempts = record.attempts || 0;
+                }
 
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ error: "Email not sent" });
-    }
+                db.query("DELETE FROM otp_verification WHERE email = ?", [email]);
+                const hashedOtp = await bcrypt.hash(otp, 10);
+                db.query("INSERT INTO otp_verification (email, otp, expiry, attempts, last_sent) VALUES (?, ?, ?, ?, ?)",
+                    [email, hashedOtp, expiry, attempts + 1, now], () => {
+                       sendEmailPayload(); 
+                    });
+            });
+        } else {
+            global.otpStore = global.otpStore || {};
+            const record = global.otpStore[email];
+            let attempts = 0;
+            
+            if (record) {
+                if (now - record.last_sent < 30000) return res.status(429).json({ error: "Wait before retry" });
+                if (record.attempts >= 5) return res.status(429).json({ error: "Too many attempts" });
+                attempts = record.attempts || 0;
+            }
+
+            const hashedOtp = await bcrypt.hash(otp, 10);
+            global.otpStore[email] = { otp: hashedOtp, expiry, attempts: attempts + 1, last_sent: now };
+            sendEmailPayload();
+        }
+    });
 });
 
 // 2. Verify OTP
-app.post("/api/verify-otp", (req, res) => {
+app.post("/api/verify-otp", async (req, res) => {
     const { email, otp } = req.body;
-    if (global.otpStore && global.otpStore[email] == otp) {
-        res.json({ message: "OTP verified" });
+    const now = Date.now();
+
+    if (!useJson && db) {
+        db.query('SELECT * FROM otp_verification WHERE email = ? ORDER BY created_at DESC LIMIT 1', [email], async (err, results) => {
+            if (err || results.length === 0) return res.status(400).json({ error: "OTP not found" });
+            const record = results[0];
+            
+            const isMatch = await bcrypt.compare(otp, record.otp);
+            if (!isMatch) return res.status(400).json({ error: "Invalid OTP" });
+            if (now > record.expiry) return res.status(400).json({ error: "OTP expired" });
+            
+            // ✅ mark verified
+            db.query("UPDATE otp_verification SET is_verified = true WHERE email = ?", [email], (updateErr) => {
+                if (updateErr) return res.status(500).json({ error: "Database update failed" });
+                res.json({ message: "OTP verified" });
+            });
+        });
     } else {
-        res.status(400).json({ error: "Invalid OTP" });
+        const stored = global.otpStore && global.otpStore[email];
+        if (!stored) return res.status(400).json({ error: "OTP not found" });
+        
+        const isMatch = await bcrypt.compare(otp, stored.otp);
+        if (!isMatch) return res.status(400).json({ error: "Invalid OTP" });
+        if (now > stored.expiry) return res.status(400).json({ error: "OTP expired" });
+        stored.is_verified = true;
+        res.json({ message: "OTP verified" });
     }
 });
 
 // 3. Reset Password
 app.post("/api/reset-password", async (req, res) => {
     const { email, newPassword } = req.body;
-    
-    try {
-        const hashedPassword = await bcrypt.hash(newPassword, 8);
-        executeQuery('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email], (err) => {
-            if (err) return res.status(500).json({ error: "Database update failed" });
-            
-            if (global.otpStore) delete global.otpStore[email];
-            res.json({ message: "Password updated successfully" });
+
+    if (!useJson && db) {
+        db.query("SELECT * FROM otp_verification WHERE email = ? ORDER BY created_at DESC LIMIT 1", [email], async (err, results) => {
+            if (err) return res.status(500).json({ error: "Database error" });
+            if (results.length === 0) return res.status(400).json({ error: "No request found" });
+
+            const record = results[0];
+            if (!record.is_verified) return res.status(403).json({ error: "OTP not verified" });
+
+            try {
+                const hashedPassword = await bcrypt.hash(newPassword, 10);
+                executeQuery('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email], (updateErr) => {
+                    if (updateErr) return res.status(500).json({ error: "Database update failed" });
+
+                    db.query('DELETE FROM otp_verification WHERE email = ?', [email]);
+                    res.json({ message: "Password updated successfully" });
+                });
+            } catch (e) {
+                res.status(500).json({ error: "Processing error" });
+            }
         });
-    } catch (e) {
-        res.status(500).json({ error: "Processing error" });
+    } else {
+        const stored = global.otpStore && global.otpStore[email];
+        if (!stored) return res.status(400).json({ error: "No request found" });
+        if (!stored.is_verified) return res.status(403).json({ error: "OTP not verified" });
+
+        try {
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            executeQuery('UPDATE users SET password = ? WHERE email = ?', [hashedPassword, email], (updateErr) => {
+                if (updateErr) return res.status(500).json({ error: "Database update failed" });
+
+                delete global.otpStore[email];
+                res.json({ message: "Password updated successfully" });
+            });
+        } catch (e) {
+            res.status(500).json({ error: "Processing error" });
+        }
     }
 });
 
@@ -449,6 +544,26 @@ app.get('*', (req, res) => {
         res.sendFile(path.join(__dirname, "../public", filePath));
     } else {
         res.sendFile(path.join(__dirname, "../public", filePath + '.html'));
+    }
+});
+
+// har 5 min me cleanup
+cron.schedule("*/5 * * * *", () => {
+    const now = Date.now();
+    if (!useJson && typeof db !== 'undefined' && db) {
+        db.query("DELETE FROM otp_verification WHERE expiry < ?", [now], (err) => {
+            if (err) console.error("Cron OTP DB cleanup error:", err);
+            else console.log("Removed expired OTPs from database");
+        });
+    } else if (global.otpStore) {
+        let cleared = 0;
+        for (const email in global.otpStore) {
+            if (global.otpStore[email].expiry < now) {
+                delete global.otpStore[email];
+                cleared++;
+            }
+        }
+        if (cleared > 0) console.log(`Removed ${cleared} expired OTPs from JSON store`);
     }
 });
 
