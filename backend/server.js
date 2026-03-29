@@ -358,12 +358,16 @@ app.get('*', (req, res) => {
     }
 });
 
-// har 5 min me cleanup
-cron.schedule("*/5 * * * *", () => {
+// har 1 min me expired OTP cleanup
+cron.schedule("* * * * *", () => {
     const now = Date.now();
     if (typeof db !== 'undefined' && db) {
         db.query("DELETE FROM otp_verification WHERE expiry < ?", [now])
-            .then(() => console.log("Removed expired OTPs from database"))
+            .then((result) => {
+                if (result[0].affectedRows > 0) {
+                    console.log(`Removed ${result[0].affectedRows} expired OTPs from database`);
+                }
+            })
             .catch(err => console.error("Cron OTP DB cleanup error:", err.message));
     }
 });

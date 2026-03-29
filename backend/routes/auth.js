@@ -24,9 +24,12 @@ router.post("/send-otp", async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000);
     const expiry = Date.now() + 5 * 60 * 1000;
 
+    // Delete old OTPs for this email first
+    await db.query("DELETE FROM otp_verification WHERE email = ?", [email]);
+    
     await db.query(
-      "INSERT INTO otp_verification (email, otp, expiry, is_verified) VALUES (?, ?, ?, FALSE) ON DUPLICATE KEY UPDATE otp = ?, expiry = ?, is_verified = FALSE",
-      [email, otp, expiry, otp, expiry]
+      "INSERT INTO otp_verification (email, otp, expiry, is_verified) VALUES (?, ?, ?, FALSE)",
+      [email, otp, expiry]
     );
 
     await resend.emails.send({
@@ -56,7 +59,10 @@ router.post("/verify-otp", async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    const [records] = await db.query("SELECT * FROM otp_verification WHERE email = ? AND is_verified = FALSE ORDER BY created_at DESC LIMIT 1", [email]);
+    // Delete all expired OTPs first
+    await db.query("DELETE FROM otp_verification WHERE expiry < ?", [Date.now()]);
+
+    const [records] = await db.query("SELECT * FROM otp_verification WHERE email = ? AND is_verified = FALSE ORDER BY create_at DESC LIMIT 1", [email]);
 
     if (records.length === 0) {
       return res.status(400).json({ message: "No OTP found or already verified" });
@@ -64,6 +70,8 @@ router.post("/verify-otp", async (req, res) => {
 
     const record = records[0];
     if (Date.now() > record.expiry) {
+      // Delete expired OTP immediately
+      await db.query("DELETE FROM otp_verification WHERE id = ?", [record.id]);
       return res.status(400).json({ message: "OTP expired" });
     }
 
