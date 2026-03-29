@@ -12,8 +12,50 @@ const cron = require('node-cron');
 const db = require("./db");
 
 db.getConnection()
-    .then(connection => {
+    .then(async connection => {
         console.log("✅ DB Connected Successfully");
+        
+        const tables = [
+            `CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, first_name VARCHAR(255), last_name VARCHAR(255), email VARCHAR(255) UNIQUE, phone VARCHAR(20), password VARCHAR(255), role ENUM('client', 'admin') DEFAULT 'client', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
+            `CREATE TABLE IF NOT EXISTS services (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), price DECIMAL(10,2), duration INT, category VARCHAR(100), description TEXT, image TEXT)`,
+            `CREATE TABLE IF NOT EXISTS bookings (id INT AUTO_INCREMENT PRIMARY KEY, user_email VARCHAR(255), service_name VARCHAR(255), price DECIMAL(10,2), date DATE, time TIME, status ENUM('Pending', 'Confirmed', 'Completed', 'Cancelled') DEFAULT 'Pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`,
+            `CREATE TABLE IF NOT EXISTS otp_verification (id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) NOT NULL, otp VARCHAR(255) NOT NULL, expiry BIGINT NOT NULL, is_verified BOOLEAN DEFAULT FALSE, attempts INT DEFAULT 0, last_sent BIGINT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`
+        ];
+        
+        for (const sql of tables) {
+            await connection.query(sql);
+        }
+        console.log("✅ Database tables created");
+        
+        const [admins] = await connection.query("SELECT * FROM users WHERE role = 'admin' LIMIT 1");
+        if (admins.length === 0) {
+            const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123', 8);
+            await connection.query(
+                "INSERT INTO users (first_name, last_name, email, phone, password, role) VALUES (?, ?, ?, ?, ?, ?)",
+                ['Admin', 'User', process.env.ADMIN_EMAIL || 'admin@glamoroussalon.com', '9999999999', hashedPassword, 'admin']
+            );
+            console.log("✅ Admin user created");
+        }
+        
+        const [services] = await connection.query("SELECT COUNT(*) as count FROM services");
+        if (services[0].count === 0) {
+            const defaultServices = [
+                ['Architectural Cut', 1200, 45, 'Artistry', 'Elite treatment using our signature techniques.', 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&fit=crop'],
+                ['Molecular Facial', 2500, 60, 'Therapy', 'Advanced facials using cellular-level technology.', 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&fit=crop'],
+                ['Signature Balayage', 4500, 120, 'Signature', 'The definition of luxury color.', 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&fit=crop'],
+                ['Bridal Artistry', 5000, 180, 'Artistry', 'Red-carpet ready makeup for your special moments.', 'https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=600&fit=crop'],
+                ['Organic Head Spa', 1800, 60, 'Therapy', 'Organic, cruelty-free formulas that nourish.', 'https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=600&fit=crop'],
+                ['Premium Gold Facial', 3000, 90, 'Signature', '24K gold-infused facial for the ultimate radiance.', 'https://images.unsplash.com/photo-1512290923902-8a9f81dc2069?w=600&fit=crop']
+            ];
+            for (const service of defaultServices) {
+                await connection.query(
+                    "INSERT INTO services (name, price, duration, category, description, image) VALUES (?, ?, ?, ?, ?, ?)",
+                    service
+                );
+            }
+            console.log("✅ Default services created");
+        }
+        
         connection.release();
     })
     .catch(err => {
