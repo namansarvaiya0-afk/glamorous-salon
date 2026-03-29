@@ -11,6 +11,14 @@ const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const db = require("./db");
 
+// 🦷 Database Connection Ritual
+db.getConnection()
+    .then(() => console.log("✅ DB Connected Successfully to Sanctuary"))
+    .catch(err => {
+        console.error("❌ DB Ritual Failed:", err.message);
+        console.log("👉 Tip: Ensure MySQL is running on port 3306");
+    });
+
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
     port: 587,
