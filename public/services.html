@@ -639,9 +639,21 @@
                     description: bookingData.serviceName,
                     order_id: order.id,
                     handler: async function (response) {
-                        // Payment Successful
-                        alert("Payment Successful! Securing your slot...");
-                        await submitBooking(bookingData, response.razorpay_payment_id);
+                        // 1. Verify Payment on Backend
+                        const verifyRes = await fetch("/api/payment/verify-payment", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(response)
+                        });
+
+                        const verifyData = await verifyRes.json();
+
+                        if (verifyData.success) {
+                            alert("Payment Verified ✅ Securing your slot...");
+                            await submitBooking(bookingData, response.razorpay_payment_id);
+                        } else {
+                            alert("Payment Verification Failed ❌ Please contact support.");
+                        }
                     },
                     prefill: {
                         name: localStorage.getItem('userName') || "Customer",
