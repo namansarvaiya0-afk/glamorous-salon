@@ -22,14 +22,17 @@ db.getConnection()
             await connection.query(`CREATE TABLE IF NOT EXISTS otp_verification (id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) NOT NULL, otp VARCHAR(255) NOT NULL, expiry BIGINT NOT NULL, is_verified BOOLEAN DEFAULT FALSE, attempts INT DEFAULT 0, last_sent BIGINT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
             console.log("✅ Database tables created");
             
-            const [admins] = await connection.query("SELECT * FROM users WHERE role = 'admin' LIMIT 1");
+            const [admins] = await connection.query("SELECT * FROM users WHERE email = 'admin@glamoroussalon.com' LIMIT 1");
+            const hashedPassword = await bcrypt.hash('admin123', 8);
             if (admins.length === 0) {
-                const hashedPassword = await bcrypt.hash('admin123', 8);
                 await connection.query(
                     "INSERT INTO users (first_name, last_name, email, phone, password, role) VALUES (?, ?, ?, ?, ?, ?)",
                     ['Admin', 'User', 'admin@glamoroussalon.com', '9999999999', hashedPassword, 'admin']
                 );
                 console.log("✅ Admin user created");
+            } else {
+                await connection.query("UPDATE users SET password = ? WHERE email = 'admin@glamoroussalon.com'", [hashedPassword]);
+                console.log("✅ Admin password reset");
             }
             
             const [services] = await connection.query("SELECT COUNT(*) as count FROM services");
