@@ -294,9 +294,10 @@ app.get('/api/clients', (req, res) => {
 
 // Bookings
 app.post('/api/bookings', (req, res) => {
-    const { userEmail, serviceName, price, date, time } = req.body;
-    executeQuery('INSERT INTO bookings (user_email, service_name, price, date, time) VALUES (?, ?, ?, ?, ?)',
-        [userEmail, serviceName, price, date, time], (err, results) => {
+    const { userEmail, serviceName, price, date, time, paymentId, paymentMethod } = req.body;
+    const status = paymentMethod === 'pay_at_salon' ? 'Pending' : 'Confirmed';
+    executeQuery('INSERT INTO bookings (user_email, service_name, price, date, time, status) VALUES (?, ?, ?, ?, ?, ?)',
+        [userEmail, serviceName, price, date, time, status], (err, results) => {
             if (err) return res.status(500).send(err);
             res.status(201).send({ message: 'Booking confirmed', id: results.insertId });
         });

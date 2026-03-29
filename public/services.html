@@ -679,7 +679,9 @@
 
             } catch (err) {
                 console.error(err);
-                alert("Payment initiation failed. Please check your connection or try 'Pay at Salon'.");
+                if (confirm("Payment failed. Would you like to pay at the salon instead?")) {
+                    await payAtSalon(bookingData);
+                }
             }
         }
 
@@ -701,6 +703,28 @@
             } catch (error) {
                 console.error('Error:', error);
                 alert('Connection to sanctuary lost. Please try again later.');
+            }
+        }
+
+        async function payAtSalon(bookingData) {
+            closeModal('bookingModal');
+            try {
+                const response = await fetch('/api/bookings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...bookingData, paymentMethod: 'pay_at_salon' })
+                });
+
+                if (response.ok) {
+                    alert('Booking Confirmed! Pay ₹' + bookingData.price + ' at the salon.');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Booking failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Connection error. Please try again.');
             }
         }
 
