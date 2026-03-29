@@ -165,15 +165,22 @@
         <div class="input-group">
             <label>Verification Code</label>
             <div class="otp-grid">
-                <input type="text" maxlength="1" oninput="moveFocus(this, 1)">
-                <input type="text" maxlength="1" oninput="moveFocus(this, 2)">
-                <input type="text" maxlength="1" oninput="moveFocus(this, 3)">
-                <input type="text" maxlength="1" oninput="moveFocus(this, 4)">
-                <input type="text" maxlength="1" oninput="moveFocus(this, 5)">
-                <input type="text" maxlength="1" oninput="moveFocus(this, 6)">
+                <input type="text" id="otp_1" maxlength="1" oninput="moveFocus(this, 1)">
+                <input type="text" id="otp_2" maxlength="1" oninput="moveFocus(this, 2)">
+                <input type="text" id="otp_3" maxlength="1" oninput="moveFocus(this, 3)">
+                <input type="text" id="otp_4" maxlength="1" oninput="moveFocus(this, 4)">
+                <input type="text" id="otp_5" maxlength="1" oninput="moveFocus(this, 5)">
+                <input type="text" id="otp_6" maxlength="1" oninput="moveFocus(this, 6)">
             </div>
+            <input type="hidden" id="email">
         </div>
         
+        <script>
+            // Sync hidden email input
+            const emailFromStorage = localStorage.getItem('recoveryEmail');
+            if(emailFromStorage) document.getElementById('email').value = emailFromStorage;
+        </script>
+
         <button class="btn-luxury" onclick="verifyOTP()">
             <span class="btn-text">Verify Code</span>
             <i class="fas fa-check-circle"></i>
@@ -217,27 +224,28 @@
         }
 
         async function verifyOTP() {
+            const email = document.getElementById("email").value;
             const inputs = document.querySelectorAll('.otp-grid input');
-            const otp = Array.from(inputs).map(i => i.value).join('');
+            const otpValue = Array.from(inputs).map(i => i.value).join('');
             
-            if (otp.length < 6) return showAlert('Enter full 6-digit code', 'error');
+            if (otpValue.length < 6) return showAlert('Enter full 6-digit code', 'error');
 
             const btn = document.querySelector('.btn-luxury');
             setLoading(btn, true);
 
             try {
-                const res = await fetch('https://glamoroussalon.onrender.com/api/verify-otp', {
+                const res = await fetch('/api/verify-otp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: userEmail, otp })
+                    body: JSON.stringify({ email: email, otp: otpValue })
                 });
                 const data = await res.json();
                 
                 if (res.ok) {
-                    showAlert('OTP Verified! Redirecting...', 'success');
+                    alert(data.message || 'OTP Verified! Redirecting...');
                     setTimeout(() => window.location.href = 'reset-password.html', 1500);
                 } else {
-                    showAlert(data.error || 'Invalid OTP', 'error');
+                    showAlert(data.error || data.message || 'Invalid OTP', 'error');
                 }
             } catch (e) {
                 showAlert('Server connection error', 'error');
