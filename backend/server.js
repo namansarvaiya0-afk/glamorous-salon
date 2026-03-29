@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
+const db = require('./db');
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
@@ -222,41 +223,32 @@ const authenticateAdmin = (req, res, next) => {
 
 // Auth: Login
 app.post('/api/login', async (req, res) => {
-    const { email, password } = req.body;
-    console.log(`Login attempt for: ${email}`);
-
-    // Admin shortcut
-    if (email === 'admin' && password === 'Admin@123') {
-        const adminUser = { id: 999, first_name: 'Salon', last_name: 'Admin', email: 'admin', role: 'admin' };
-        const token = jwt.sign(adminUser, 'GLAMOUR_SECRET');
-        return res.send({ success: true, user: adminUser, token });
-    }
-
     try {
-        const dbPromise = require('./db');
-        const [results] = await dbPromise.query('SELECT * FROM users WHERE email = ?', [email]);
+        const { email, password } = req.body;
+        const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
 
-        if (results.length === 0) {
-            return res.status(400).json({ message: "Invalid credentials" });
+        if (!rows || rows.length === 0) {
+            return res.status(400).json({ message: "User not found" });
         }
 
-        const user = results[0];
+        const user = rows[0];
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return res.status(400).json({ message: "Invalid credentials" });
+            return res.status(400).json({ message: "Invalid password" });
         }
 
         console.log(`Login successful: ${email} (${user.role})`);
-        const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, 'GLAMOUR_SECRET');
-        res.send({ 
+        const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'GLAMOUR_SECRET');
+        res.json({ 
             success: true, 
-            user: { id: user.id, email: user.email, name: user.first_name, role: user.role }, 
+            message: "Login successful",
+            user: { id: user.id, email: user.email, first_name: user.first_name, role: user.role }, 
             token 
         });
 
     } catch (err) {
-        console.error('Login Error:', err);
+        console.error("LOGIN ERROR:", err);
         res.status(500).json({ message: "Server error" });
     }
 });
