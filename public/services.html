@@ -595,10 +595,22 @@
             currentBooking = null;
         }
 
+        function convertTimeFormat(timeStr) {
+            if (!timeStr) return '';
+            const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+            if (!match) return timeStr;
+            let hours = parseInt(match[1]);
+            const minutes = match[2];
+            const period = match[3].toUpperCase();
+            if (period === 'PM' && hours !== 12) hours += 12;
+            if (period === 'AM' && hours === 12) hours = 0;
+            return `${hours.toString().padStart(2, '0')}:${minutes}:00`;
+        }
+
         async function handleBooking(e) {
             e.preventDefault();
             const date = document.getElementById('bookingDate').value;
-            const time = document.getElementById('bookingTime').value;
+            const timeValue = document.getElementById('bookingTime').value;
             const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
             const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -608,7 +620,7 @@
                 return;
             }
 
-            if (!date || !time) {
+            if (!date || !timeValue) {
                 alert('Please select date and time');
                 return;
             }
@@ -623,7 +635,7 @@
                 serviceName: currentBooking.name,
                 price: Number(currentBooking.price),
                 date: date,
-                time: time
+                time: convertTimeFormat(timeValue)
             };
 
             if (paymentMethod === 'online') {
