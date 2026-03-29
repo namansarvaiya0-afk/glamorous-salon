@@ -181,9 +181,16 @@ app.post("/api/login", async (req, res) => {
             return res.status(400).json({ success: false, message: "Invalid password" });
         }
 
+        const token = jwt.sign(
+            { id: user.id, email: user.email, role: user.role },
+            'GLAMOUR_SECRET',
+            { expiresIn: '7d' }
+        );
+
         return res.json({
             success: true,
             message: "Login successful",
+            token: token,
             user: { id: user.id, email: user.email, first_name: user.first_name, role: user.role }
         });
 
