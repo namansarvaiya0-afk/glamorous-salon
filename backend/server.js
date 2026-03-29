@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
-const db = require('./db');
+const db = require("./db");
 
 const transporter = nodemailer.createTransport({
     host: "smtp.gmail.com",
@@ -222,10 +222,23 @@ const authenticateAdmin = (req, res, next) => {
 };
 
 // Auth: Login
-app.post('/api/login', async (req, res) => {
+app.post("/api/login", async (req, res) => {
     try {
         const { email, password } = req.body;
-        const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+
+        if (!email || !password) {
+            return res.status(400).json({ message: "All fields required" });
+        }
+
+        // 👇 DB check fail-safe
+        if (!db) {
+            return res.status(500).json({ message: "Database not connected" });
+        }
+
+        const [rows] = await db.query(
+            "SELECT * FROM users WHERE email = ?",
+            [email]
+        );
 
         if (!rows || rows.length === 0) {
             return res.status(400).json({ message: "User not found" });
@@ -239,12 +252,16 @@ app.post('/api/login', async (req, res) => {
         }
 
         console.log(`Login successful: ${email} (${user.role})`);
-        const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, process.env.JWT_SECRET || 'GLAMOUR_SECRET');
+        const token = jwt.sign(
+            { id: user.id, email: user.email, role: user.role },
+            process.env.JWT_SECRET || "GLAMOUR_SECRET"
+        );
+
         res.json({
             success: true,
             message: "Login successful",
             user: { id: user.id, email: user.email, first_name: user.first_name, role: user.role },
-            token
+            token,
         });
 
     } catch (err) {
