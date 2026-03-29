@@ -24,18 +24,17 @@ db.getConnection()
             await connection.query(`CREATE TABLE IF NOT EXISTS otp_verification (id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) NOT NULL, otp VARCHAR(255) NOT NULL, expiry BIGINT NOT NULL, is_verified BOOLEAN DEFAULT FALSE, attempts INT DEFAULT 0, last_sent BIGINT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`);
             console.log("✅ Database tables created");
             
-            const [admins] = await connection.query("SELECT * FROM users WHERE email = 'admin' LIMIT 1");
             const hashedPassword = await bcrypt.hash('admin@123', 8);
-            if (admins.length === 0) {
-                await connection.query(
-                    "INSERT INTO users (first_name, last_name, email, phone, password, role) VALUES (?, ?, ?, ?, ?, ?)",
-                    ['Admin', 'User', 'admin', '9999999999', hashedPassword, 'admin']
-                );
-                console.log("✅ Admin user created");
-            } else {
-                await connection.query("UPDATE users SET email = 'admin', password = ? WHERE email = 'admin' OR email = 'admin@glamoroussalon.com'", [hashedPassword]);
-                console.log("✅ Admin credentials updated");
-            }
+            
+            // Delete existing admin users
+            await connection.query("DELETE FROM users WHERE email = 'admin' OR email = 'admin@glamoroussalon.com'");
+            
+            // Create new admin
+            await connection.query(
+                "INSERT INTO users (first_name, last_name, email, phone, password, role) VALUES (?, ?, ?, ?, ?, ?)",
+                ['Admin', 'User', 'admin', '9999999999', hashedPassword, 'admin']
+            );
+            console.log("✅ Admin credentials updated");
             
             const [services] = await connection.query("SELECT COUNT(*) as count FROM services");
             if (services[0].count === 0) {
