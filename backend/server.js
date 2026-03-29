@@ -431,8 +431,9 @@ cron.schedule("*/5 * * * *", () => {
 });
 
 function startServer(port) {
-    const server = app.listen(port, () => {
-        console.log(`Server running on port ${port}`);
+    const host = process.env.HOST || '0.0.0.0';
+    const server = app.listen(port, host, () => {
+        console.log(`Server running on ${host}:${port}`);
     });
 
     server.on('error', (err) => {
