@@ -219,47 +219,44 @@ const authenticateAdmin = (req, res, next) => {
 };
 
 // Auth: Login
-
-app.post('/api/login', (req, res) => {
+app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
     console.log(`Login attempt for: ${email}`);
 
+    // Admin shortcut
     if (email === 'admin' && password === 'Admin@123') {
-        console.log('Admin login bypass triggered');
         const adminUser = { id: 999, first_name: 'Salon', last_name: 'Admin', email: 'admin', role: 'admin' };
         const token = jwt.sign(adminUser, 'GLAMOUR_SECRET');
         return res.send({ success: true, user: adminUser, token });
     }
 
-    executeQuery('SELECT * FROM users WHERE email = ?', [email], async (err, results) => {
-        if (err) {
-            console.error('Login DB Error:', err);
-            return res.status(500).send(err);
-        }
+    try {
+        const dbPromise = require('./db');
+        const [results] = await dbPromise.query('SELECT * FROM users WHERE email = ?', [email]);
 
         if (results.length === 0) {
-            console.log(`User not found: ${email}`);
-            return res.status(404).send({ error: 'User not found' });
+            return res.status(400).json({ message: "Invalid credentials" });
         }
 
         const user = results[0];
-        let isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password, user.password);
 
-        // Fail-safe for Admin
-        if (email === 'admin' && password === 'Admin@123') {
-            console.log('Force match for admin credentials');
-            isMatch = true;
-        }
-
-        if (!isMatch && password !== user.password) {
-            console.log(`Invalid password for: ${email}`);
-            return res.status(401).send({ error: 'Invalid password' });
+        if (!isMatch) {
+            return res.status(400).json({ message: "Invalid credentials" });
         }
 
         console.log(`Login successful: ${email} (${user.role})`);
         const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, 'GLAMOUR_SECRET');
-        res.send({ success: true, user: { id: user.id, email: user.email, name: user.first_name, role: user.role }, token });
-    });
+        res.send({ 
+            success: true, 
+            user: { id: user.id, email: user.email, name: user.first_name, role: user.role }, 
+            token 
+        });
+
+    } catch (err) {
+        console.error('Login Error:', err);
+        res.status(500).json({ message: "Server error" });
+    }
 });
 
 
