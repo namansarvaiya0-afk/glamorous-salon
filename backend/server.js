@@ -221,52 +221,73 @@ const authenticateAdmin = (req, res, next) => {
     }
 };
 
-// Auth: Login
+// Auth: Login - Enhanced Crash-Proof Version
 app.post("/api/login", async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        // 1. Input Validation
         if (!email || !password) {
-            return res.status(400).json({ message: "All fields required" });
+            return res.status(400).json({ success: false, message: "Email and password are required" });
         }
 
-        // 👇 DB check fail-safe
-        if (!db) {
-            return res.status(500).json({ message: "Database not connected" });
+        // 2. Database Connection Check
+        if (!db || typeof db.query !== 'function') {
+            console.error("CRITICAL: Database connection pool is not initialized!");
+            return res.status(500).json({ success: false, message: "Service temporarily unavailable" });
         }
 
+        // 3. Secure Query
         const [rows] = await db.query(
-            "SELECT * FROM users WHERE email = ?",
+            "SELECT id, email, password, first_name, role FROM users WHERE email = ? LIMIT 1",
             [email]
         );
 
+        // 4. User Existence Check
         if (!rows || rows.length === 0) {
-            return res.status(400).json({ message: "User not found" });
+            return res.status(400).json({ success: false, message: "Account not found" });
         }
 
         const user = rows[0];
+
+        // 5. Password Integrity Check
+        if (!user.password) {
+            console.error(`Security Alert: User ${email} has no hashed password in DB!`);
+            return res.status(400).json({ success: false, message: "Security parameters mismatch" });
+        }
+
+        // 6. Secure Password Comparison
         const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
-            return res.status(400).json({ message: "Invalid password" });
+            return res.status(400).json({ success: false, message: "Invalid credentials" });
         }
 
-        console.log(`Login successful: ${email} (${user.role})`);
+        // 7. Session Generation
+        console.log(`[AUTH] Login success: ${email} | Role: ${user.role}`);
+        
+        const tokenToken = process.env.JWT_SECRET || "GLAMOUR_SECRET_RESERVE_KEY_2024";
         const token = jwt.sign(
             { id: user.id, email: user.email, role: user.role },
-            process.env.JWT_SECRET || "GLAMOUR_SECRET"
+            tokenToken,
+            { expiresIn: '12h' }
         );
 
-        res.json({
+        return res.json({
             success: true,
             message: "Login successful",
-            user: { id: user.id, email: user.email, first_name: user.first_name, role: user.role },
-            token,
+            user: { 
+                id: user.id, 
+                email: user.email, 
+                first_name: user.first_name, 
+                role: user.role 
+            },
+            token
         });
 
     } catch (err) {
-        console.error("LOGIN ERROR:", err);
-        res.status(500).json({ message: "Server error" });
+        console.error("CRASH-PROOF LOGIN ERROR:", err.message);
+        return res.status(500).json({ success: false, message: "Internal ritual failure" });
     }
 });
 
