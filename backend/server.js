@@ -290,10 +290,10 @@ app.post("/api/send-otp", async (req, res) => {
                             <p>This OTP is valid for <strong>5 minutes</strong>.</p>
                            </div>`
                 });
-                console.log("OTP sent for", email);
+                console.log("✅ OTP SENT to " + email);
                 res.json({ message: "OTP sent to email" });
             } catch (err) {
-                console.error("Email send error:", err);
+                console.log("❌ MAIL ERROR:", err);
                 res.status(500).json({ error: "Email not sent" });
             }
         };
