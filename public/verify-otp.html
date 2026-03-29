@@ -132,17 +132,19 @@
         .alert-error { background: rgba(220, 38, 38, 0.15); color: #fca5a5; border: 1px solid rgba(220, 38, 38, 0.3); }
         .alert-success { background: rgba(21, 128, 61, 0.15); color: #86efac; border: 1px solid rgba(21, 128, 61, 0.3); }
 
-        .otp-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; }
+        .otp-grid { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
         .otp-grid input { 
-            text-align: center; font-size: 24px; font-weight: 700; padding: 16px 0;
-            border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
-            background: rgba(0,0,0,0.3); color: white; transition: 0.3s;
+            width: 50px; height: 60px; text-align: center; font-size: 28px; font-weight: 700; 
+            border-radius: 15px; border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1); color: #fff; transition: 0.3s;
+            backdrop-filter: blur(10px);
         }
         .otp-grid input:focus {
-            outline: none; border-color: var(--secondary);
-            background: rgba(0,0,0,0.5); box-shadow: 0 0 15px rgba(108, 92, 231, 0.3);
-            transform: translateY(-2px);
+            outline: none; border-color: var(--primary);
+            background: rgba(255,255,255,0.2); box-shadow: 0 0 20px rgba(255, 51, 102, 0.4);
+            transform: scale(1.05);
         }
+        .otp-grid input::placeholder { color: rgba(255,255,255,0.3); }
         
         button { z-index: 9999; position: relative; }
     </style>
@@ -200,10 +202,32 @@
         }
 
         function moveFocus(el, index) {
+            const inputs = document.querySelectorAll('.otp-grid input');
             if (el.value.length === 1 && index < 6) {
-                document.querySelectorAll('.otp-grid input')[index].focus();
+                inputs[index].focus();
+            }
+            if (el.value === '' && index > 1) {
+                inputs[index - 2].focus();
+            }
+            checkComplete();
+        }
+
+        function checkComplete() {
+            const inputs = document.querySelectorAll('.otp-grid input');
+            const otp = Array.from(inputs).map(i => i.value).join('');
+            if (otp.length === 6) {
+                document.querySelector('.btn-luxury').click();
             }
         }
+
+        document.querySelectorAll('.otp-grid input').forEach((input, index) => {
+            input.addEventListener('keydown', (e) => {
+                const allInputs = document.querySelectorAll('.otp-grid input');
+                if (e.key === 'Backspace' && input.value === '' && index > 0) {
+                    allInputs[index - 1].focus();
+                }
+            });
+        });
 
         function showAlert(msg, type) {
             const box = document.getElementById('alertBox');
