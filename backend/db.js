@@ -1,6 +1,6 @@
 const mysql = require("mysql2/promise");
 
-let db;
+let pool;
 
 const dbConfig = {
   host: process.env.DB_HOST,
@@ -15,9 +15,9 @@ const dbConfig = {
 };
 
 if (process.env.MYSQL_PUBLIC_URL) {
-  db = mysql.createPool(process.env.MYSQL_PUBLIC_URL);
+  pool = mysql.createPool(process.env.MYSQL_PUBLIC_URL);
 } else {
-  db = mysql.createPool(dbConfig);
+  pool = mysql.createPool(dbConfig);
 }
 
-module.exports = db;
+module.exports = pool;

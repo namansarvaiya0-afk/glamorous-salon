@@ -53,54 +53,9 @@ app.get("/", (req, res) => {
 });
 const DB_JSON_PATH = path.join(__dirname, 'db.json');
 
-let useJson = false;
-
-
 // Function to handle JSON file operations
 const getJsonData = () => JSON.parse(fs.readFileSync(DB_JSON_PATH, 'utf8'));
 const saveJsonData = (data) => fs.writeFileSync(DB_JSON_PATH, JSON.stringify(data, null, 2));
-
-// Initialize MySQL with fallback
-const initDB = () => {
-    const connection = mysql.createConnection({
-        host: process.env.DB_HOST || 'localhost',
-        user: process.env.DB_USER || 'root',
-        password: process.env.DB_PASS !== undefined ? process.env.DB_PASS : ''
-    });
-
-    connection.connect(err => {
-        if (err) {
-            console.log('MySQL not available, using JSON fallback.');
-            useJson = true;
-            return;
-        }
-        console.log('Connected to MySQL server.');
-        db = connection;
-        setupMySQLSchema();
-    });
-};
-
-function setupMySQLSchema() {
-    db.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME || 'glamorous_salon'}`, (err) => {
-        if (err) return console.error('DB creation failed:', err);
-        db.query(`USE ${process.env.DB_NAME || 'glamorous_salon'}`, (err) => {
-            // Create tables logic (truncated for brevity in chunk but will be kept in full file)
-            const createUsers = `CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, first_name VARCHAR(255), last_name VARCHAR(255), email VARCHAR(255) UNIQUE, phone VARCHAR(20), password VARCHAR(255), role ENUM('client', 'admin') DEFAULT 'client', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
-            const createServices = `CREATE TABLE IF NOT EXISTS services (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), price DECIMAL(10,2), duration INT, category VARCHAR(100), description TEXT, image TEXT)`;
-            const createBookings = `CREATE TABLE IF NOT EXISTS bookings (id INT AUTO_INCREMENT PRIMARY KEY, user_email VARCHAR(255), service_name VARCHAR(255), price DECIMAL(10,2), date DATE, time TIME, status ENUM('Pending', 'Confirmed', 'Completed', 'Cancelled') DEFAULT 'Pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
-            const createOTP = `CREATE TABLE IF NOT EXISTS otp_verification (id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255) NOT NULL, otp VARCHAR(255) NOT NULL, expiry BIGINT NOT NULL, is_verified BOOLEAN DEFAULT FALSE, attempts INT DEFAULT 0, last_sent BIGINT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)`;
-
-            db.query(createUsers);
-            db.query(createServices);
-            db.query(createBookings);
-            db.query(createOTP, () => {
-                console.log('MySQL Schema Verified.');
-                seedAdmin();
-                seedDefaultServices();
-            });
-        });
-    });
-}
 
 // Unified Query Helper
 const executeQuery = (sql, params, callback) => {
@@ -108,95 +63,15 @@ const executeQuery = (sql, params, callback) => {
         callback = params;
         params = [];
     }
-
-    if (!useJson && db) {
-        return db.query(sql, params, callback);
-    }
-
-    // JSON Fallback Logic
-    try {
-        const data = getJsonData();
-        const sqlLower = sql.toLowerCase();
-
-        if (sqlLower.includes('select * from users where email = ?')) {
-            const results = data.users.filter(u => u.email === params[0]);
-            return callback(null, results);
-        }
-
-        if (sqlLower.includes('select * from users where phone = ?')) {
-            const results = data.users.filter(u => u.phone === params[0]);
-            return callback(null, results);
-        }
-
-        if (sqlLower.includes('select') && sqlLower.includes('from users')) {
-            const usersList = data.users.map(u => ({ ...u, role_val: u.role || 'client' }));
-            return callback(null, usersList);
-        }
-
-        if (sqlLower.includes('update users set password')) {
-            data.users = data.users.map(u => u.email === params[1] ? { ...u, password: params[0] } : u);
-            saveJsonData(data);
-            return callback(null);
-        }
-
-        if (sqlLower.includes('insert into users')) {
-            const newUser = { id: Date.now(), first_name: params[0], last_name: params[1], email: params[2], phone: params[3], password: params[4], role: params[5] || 'client', created_at: new Date() };
-            data.users.push(newUser);
-            saveJsonData(data);
-            return callback(null, { insertId: newUser.id });
-        }
-
-        if (sqlLower.includes('select * from services')) {
-            return callback(null, data.services);
-        }
-
-        if (sqlLower.includes('insert into services')) {
-            const newService = { id: Date.now(), name: params[0], price: params[1], duration: params[2], category: params[3], description: params[4], image: params[5] };
-            data.services.push(newService);
-            saveJsonData(data);
-            return callback(null, { insertId: newService.id });
-        }
-
-        if (sqlLower.includes('update services')) {
-            const id = params[params.length - 1];
-            data.services = data.services.map(s => s.id == id ? { ...s, name: params[0], price: params[1], duration: params[2], category: params[3], description: params[4], image: params[5] } : s);
-            saveJsonData(data);
-            return callback(null);
-        }
-
-        if (sqlLower.includes('delete from services')) {
-            data.services = data.services.filter(s => s.id != params[0]);
-            saveJsonData(data);
-            return callback(null);
-        }
-
-        if (sqlLower.includes('select * from bookings')) {
-            if (sqlLower.includes('user_email = ?')) {
-                return callback(null, data.bookings.filter(b => b.user_email === params[0]));
-            }
-            return callback(null, data.bookings);
-        }
-
-        if (sqlLower.includes('insert into bookings')) {
-            const newBooking = { id: Date.now(), user_email: params[0], service_name: params[1], price: params[2], date: params[3], time: params[4], status: 'Pending', created_at: new Date() };
-            data.bookings.push(newBooking);
-            saveJsonData(data);
-            return callback(null, { insertId: newBooking.id });
-        }
-
-        if (sqlLower.includes('update bookings set status')) {
-            data.bookings = data.bookings.map(b => b.id == params[1] ? { ...b, status: params[0] } : b);
-            saveJsonData(data);
-            return callback(null);
-        }
-
-        callback(new Error('JSON Fallback: Query not mapped: ' + sql));
-    } catch (e) {
-        callback(e);
-    }
+    
+    db.query(sql, params)
+        .then(([results]) => {
+            if (callback) callback(null, results);
+        })
+        .catch(err => {
+            if (callback) callback(err);
+        });
 };
-
-initDB();
 
 // Middleware
 // Serve static files
@@ -415,20 +290,10 @@ app.get('*', (req, res) => {
 // har 5 min me cleanup
 cron.schedule("*/5 * * * *", () => {
     const now = Date.now();
-    if (!useJson && typeof db !== 'undefined' && db) {
-        db.query("DELETE FROM otp_verification WHERE expiry < ?", [now], (err) => {
-            if (err) console.error("Cron OTP DB cleanup error:", err);
-            else console.log("Removed expired OTPs from database");
-        });
-    } else if (global.otpStore) {
-        let cleared = 0;
-        for (const email in global.otpStore) {
-            if (global.otpStore[email].expiry < now) {
-                delete global.otpStore[email];
-                cleared++;
-            }
-        }
-        if (cleared > 0) console.log(`Removed ${cleared} expired OTPs from JSON store`);
+    if (typeof db !== 'undefined' && db) {
+        db.query("DELETE FROM otp_verification WHERE expiry < ?", [now])
+            .then(() => console.log("Removed expired OTPs from database"))
+            .catch(err => console.error("Cron OTP DB cleanup error:", err.message));
     }
 });
 
