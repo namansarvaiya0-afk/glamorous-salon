@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reset Access - Glamorous Studio</title>
+    <title>Verify OTP - Glamorous Studio</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -91,27 +91,10 @@
         .header h1 { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 700; margin-bottom: 10px; background: linear-gradient(to right, #fff, #eca0b6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
         .header p { color: var(--text-muted); font-size: 15px; font-weight: 300; }
 
-        .form-step { display: none; }
-        .form-step.active { display: block; animation: fadeIn 0.5s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
-
         .input-group { position: relative; margin-bottom: 25px; }
         .input-group label { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 10px; padding-left: 5px; }
         
-        .input-group input[type="email"], .input-group input[type="password"], #recoveryEmail {
-            width: 100%; padding: 18px 24px; border-radius: var(--radius-md);
-            border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2);
-            font-family: inherit; font-size: 16px; color: white;
-            transition: all 0.3s ease;
-            margin-bottom: 15px; /* Added margin for direct inputs like #recoveryEmail */
-        }
-        .input-group input::placeholder, #recoveryEmail::placeholder { color: rgba(255,255,255,0.3); }
-        .input-group input:focus, #recoveryEmail:focus {
-            outline: none; border-color: var(--primary);
-            background: rgba(0,0,0,0.4); box-shadow: 0 0 20px rgba(255, 51, 102, 0.15);
-        }
-
-        .btn-luxury, #otpBtn {
+        .btn-luxury {
             width: 100%; padding: 18px; border-radius: var(--radius-md); border: none;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white; font-family: inherit; font-size: 16px; font-weight: 700; letter-spacing: 1px;
@@ -120,15 +103,15 @@
             box-shadow: 0 10px 20px rgba(255, 51, 102, 0.2);
             position: relative; overflow: hidden;
         }
-        .btn-luxury::after, #otpBtn::after {
+        .btn-luxury::after {
             content: ''; position: absolute; inset: 0;
             background: linear-gradient(rgba(255,255,255,0.2), transparent);
             opacity: 0; transition: opacity 0.3s;
         }
-        .btn-luxury:hover, #otpBtn:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(255, 51, 102, 0.35); }
-        .btn-luxury:hover::after, #otpBtn:hover::after { opacity: 1; }
-        .btn-luxury:active, #otpBtn:active { transform: translateY(1px); }
-        .btn-luxury:disabled, #otpBtn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-luxury:hover { transform: translateY(-2px); box-shadow: 0 15px 25px rgba(255, 51, 102, 0.35); }
+        .btn-luxury:hover::after { opacity: 1; }
+        .btn-luxury:active { transform: translateY(1px); }
+        .btn-luxury:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
 
         .footer-links { text-align: center; margin-top: 35px; font-size: 14px; color: var(--text-muted); }
         .footer-links a { color: var(--primary); font-weight: 600; text-decoration: none; transition: 0.3s; }
@@ -160,6 +143,8 @@
             background: rgba(0,0,0,0.5); box-shadow: 0 0 15px rgba(108, 92, 231, 0.3);
             transform: translateY(-2px);
         }
+        
+        button { z-index: 9999; position: relative; }
     </style>
 </head>
 <body>
@@ -170,26 +155,48 @@
 
     <div class="auth-card">
         <div class="header">
-            <div class="header-icon"><i class="fas fa-fingerprint"></i></div>
-            <h1>Account Recovery</h1>
-            <p>Your secure portal to regain access</p>
+            <div class="header-icon"><i class="fas fa-shield-alt"></i></div>
+            <h1>Verification</h1>
+            <p>Enter the 6-digit code sent to your email</p>
         </div>
 
         <div id="alertBox" class="alert"></div>
 
-        <!-- Step 1: Email -->
-        <div id="step1" class="form-step active">
-            <input type="email" id="recoveryEmail" placeholder="Enter email">
-            <button id="otpBtn">Send OTP</button>
-            <div class="footer-links">
-                Remembered it? <a href="login.html">Back to Sign In</a>
+        <div class="input-group">
+            <label>Verification Code</label>
+            <div class="otp-grid">
+                <input type="text" maxlength="1" oninput="moveFocus(this, 1)">
+                <input type="text" maxlength="1" oninput="moveFocus(this, 2)">
+                <input type="text" maxlength="1" oninput="moveFocus(this, 3)">
+                <input type="text" maxlength="1" oninput="moveFocus(this, 4)">
+                <input type="text" maxlength="1" oninput="moveFocus(this, 5)">
+                <input type="text" maxlength="1" oninput="moveFocus(this, 6)">
             </div>
         </div>
-
+        
+        <button class="btn-luxury" onclick="verifyOTP()">
+            <span class="btn-text">Verify Code</span>
+            <i class="fas fa-check-circle"></i>
+            <div class="spinner"></div>
+        </button>
+        
+        <div class="footer-links">
+            <a href="forgot-password.html">Go Back</a>
+        </div>
     </div>
 
     <script>
-        let userEmail = '';
+        const userEmail = localStorage.getItem('recoveryEmail');
+        
+        if (!userEmail) {
+            window.location.href = 'forgot-password.html';
+        }
+
+        function moveFocus(el, index) {
+            if (el.value.length === 1 && index < 6) {
+                document.querySelectorAll('.otp-grid input')[index].focus();
+            }
+        }
 
         function showAlert(msg, type) {
             const box = document.getElementById('alertBox');
@@ -199,41 +206,45 @@
             setTimeout(() => box.style.display = 'none', 5000);
         }
 
-        async function sendOTP() {
-            const emailInput = document.getElementById('recoveryEmail');
-            userEmail = userEmail || emailInput.value;
-            if (!userEmail) return showAlert('Please enter your email', 'error');
+        function setLoading(btn, isLoading) {
+            const text = btn.querySelector('.btn-text');
+            const icon = btn.querySelector('i');
+            const spinner = btn.querySelector('.spinner');
+            btn.disabled = isLoading;
+            text.style.display = isLoading ? 'none' : 'block';
+            icon.style.display = isLoading ? 'none' : 'block';
+            spinner.style.display = isLoading ? 'block' : 'none';
+        }
+
+        async function verifyOTP() {
+            const inputs = document.querySelectorAll('.otp-grid input');
+            const otp = Array.from(inputs).map(i => i.value).join('');
             
-            const btn = document.getElementById("otpBtn");
-            btn.disabled = true;
-            btn.textContent = "Sending...";
+            if (otp.length < 6) return showAlert('Enter full 6-digit code', 'error');
+
+            const btn = document.querySelector('.btn-luxury');
+            setLoading(btn, true);
 
             try {
-                const res = await fetch('/api/send-otp', {
+                const res = await fetch('/api/verify-otp', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: userEmail })
+                    body: JSON.stringify({ email: userEmail, otp })
                 });
                 const data = await res.json();
                 
                 if (res.ok) {
-                    localStorage.setItem('recoveryEmail', userEmail);
-                    showAlert('OTP Sent! Redirecting...', 'success');
-                    setTimeout(() => {
-                        window.location.href = 'verify-otp.html';
-                    }, 1000);
+                    showAlert('OTP Verified! Redirecting...', 'success');
+                    setTimeout(() => window.location.href = 'reset-password.html', 1500);
                 } else {
-                    showAlert(data.error || 'Failed to send OTP', 'error');
+                    showAlert(data.error || 'Invalid OTP', 'error');
                 }
             } catch (e) {
                 showAlert('Server connection error', 'error');
             } finally {
-                btn.disabled = false;
-                btn.textContent = "Send OTP";
+                setLoading(btn, false);
             }
         }
-
-        document.getElementById("otpBtn").addEventListener("click", sendOTP);
     </script>
 </body>
 </html>
