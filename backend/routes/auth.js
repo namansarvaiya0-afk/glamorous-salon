@@ -1,18 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const { Resend } = require("resend");
-const bcrypt = require("bcryptjs"); // Used bcryptjs as per package.json
+const bcrypt = require("bcryptjs");
 const db = require("../db");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-
-// ✅ SEND OTP
 router.post("/send-otp", async (req, res) => {
   try {
     const { email } = req.body;
 
-    // 📧 Server-side Email Validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
@@ -25,24 +22,24 @@ router.post("/send-otp", async (req, res) => {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000);
-    const expiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+    const expiry = Date.now() + 5 * 60 * 1000;
 
     await db.query(
-      "UPDATE users SET otp = ?, otp_expiry = ? WHERE email = ?",
-      [otp, expiry, email]
+      "INSERT INTO otp_verification (email, otp, expiry, is_verified) VALUES (?, ?, ?, FALSE) ON DUPLICATE KEY UPDATE otp = ?, expiry = ?, is_verified = FALSE",
+      [email, otp, expiry, otp, expiry]
     );
 
-    // If using resend domain, update the 'from' email accordingly
     await resend.emails.send({
-      from: "onboarding@resend.dev",
+      from: "Glamorous Salon <onboarding@resend.dev>",
       to: email,
-      subject: "Password Reset OTP",
+      subject: "Password Reset OTP - Glamorous Salon",
       html: `
         <div style="font-family: sans-serif; max-width: 400px; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h2 style="color: #ff3366;">Password Reset</h2>
+          <h2 style="color: #e91e63;">Glamorous Salon - Password Reset</h2>
           <p>Your verification code is:</p>
           <h1 style="font-size: 32px; letter-spacing: 5px; color: #333;">${otp}</h1>
           <p>This OTP will expire in <strong>5 minutes</strong>.</p>
+          <p>If you didn't request this, please ignore this email.</p>
         </div>
       `,
     });
@@ -50,78 +47,64 @@ router.post("/send-otp", async (req, res) => {
     res.json({ message: "OTP sent successfully" });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error sending OTP" });
+    console.error("Send OTP Error:", err);
+    res.status(500).json({ message: "Error sending OTP: " + err.message });
   }
 });
 
-
-// ✅ VERIFY OTP
 router.post("/verify-otp", async (req, res) => {
   try {
     const { email, otp } = req.body;
 
-    const [user] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
+    const [records] = await db.query("SELECT * FROM otp_verification WHERE email = ? AND is_verified = FALSE ORDER BY created_at DESC LIMIT 1", [email]);
 
-    if (user.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+    if (records.length === 0) {
+      return res.status(400).json({ message: "No OTP found or already verified" });
     }
 
-    const storedOtp = user[0].otp;
-    const expiry = user[0].otp_expiry;
-
-    if (!storedOtp) {
-      return res.status(400).json({ message: "No OTP found" });
-    }
-
-    if (Date.now() > expiry) {
+    const record = records[0];
+    if (Date.now() > record.expiry) {
       return res.status(400).json({ message: "OTP expired" });
     }
 
-    if (storedOtp != otp) {
+    if (record.otp != otp) {
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
-    // ✅ OTP verified successfully, now mark it to allow password reset
-    await db.query("UPDATE users SET otp = 'VERIFIED' WHERE email = ?", [email]);
+    await db.query("UPDATE otp_verification SET is_verified = TRUE WHERE id = ?", [record.id]);
 
     res.json({ message: "OTP verified" });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error verifying OTP" });
+    console.error("Verify OTP Error:", err);
+    res.status(500).json({ message: "Error verifying OTP: " + err.message });
   }
 });
 
-
-// ✅ RESET PASSWORD
 router.post("/reset-password", async (req, res) => {
   try {
     const { email, newPassword } = req.body;
 
-    // 🔑 Server-side Password Validation
     if (!newPassword || newPassword.length < 6) {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
-    // 🛑 Security Check: Ensure OTP was verified first
-    const [user] = await db.query("SELECT otp FROM users WHERE email = ?", [email]);
-    if (!user.length || user[0].otp !== 'VERIFIED') {
+    const [records] = await db.query("SELECT * FROM otp_verification WHERE email = ? AND is_verified = TRUE ORDER BY created_at DESC LIMIT 1", [email]);
+    
+    if (records.length === 0) {
       return res.status(403).json({ message: "Access denied. Verify OTP first." });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    await db.query(
-      "UPDATE users SET password = ?, otp = NULL, otp_expiry = NULL WHERE email = ?",
-      [hashedPassword, email]
-    );
+    await db.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email]);
+    await db.query("DELETE FROM otp_verification WHERE email = ?", [email]);
 
     res.json({ message: "Password updated successfully" });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error updating password" });
+    console.error("Reset Password Error:", err);
+    res.status(500).json({ message: "Error updating password: " + err.message });
   }
 });
 
