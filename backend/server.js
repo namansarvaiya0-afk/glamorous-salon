@@ -33,7 +33,7 @@ app.use(cors());
 app.use(express.json());
 
 const authRoutes = require('./routes/auth');
-app.use('/', authRoutes);
+app.use('/api', authRoutes);
 
 // Default route (homepage)
 app.get("/", (req, res) => {
