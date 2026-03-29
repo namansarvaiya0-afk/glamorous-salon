@@ -6,6 +6,7 @@
     <title>Curated Services | Glamorous Studio Salon</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         :root {
             --pink-primary: #e91e63;
@@ -594,6 +595,7 @@
             e.preventDefault();
             const date = document.getElementById('bookingDate').value;
             const time = document.getElementById('bookingTime').value;
+            const paymentMethod = document.querySelector('input[name="payment"]:checked').value;
             const user = JSON.parse(localStorage.getItem('user') || '{}');
 
             if (!date || !time) {
@@ -609,11 +611,60 @@
                 time: time
             };
 
+            if (paymentMethod === 'online') {
+                await initiateOnlinePayment(bookingData);
+            } else {
+                await submitBooking(bookingData);
+            }
+        }
+
+        async function initiateOnlinePayment(bookingData) {
+            try {
+                // 1. Create Order on Backend
+                const res = await fetch("/api/payment/create-order", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ amount: bookingData.price })
+                });
+
+                if (!res.ok) throw new Error('Failed to create order');
+                const order = await res.json();
+
+                // 2. Open Razorpay Checkout
+                const options = {
+                    key: "rzp_test_YOUR_KEY", // Replace with actual key
+                    amount: order.amount,
+                    currency: "INR",
+                    name: "Glamorous Salon",
+                    description: bookingData.serviceName,
+                    order_id: order.id,
+                    handler: async function (response) {
+                        // Payment Successful
+                        alert("Payment Successful! Securing your slot...");
+                        await submitBooking(bookingData, response.razorpay_payment_id);
+                    },
+                    prefill: {
+                        name: localStorage.getItem('userName') || "Customer",
+                        email: bookingData.userEmail
+                    },
+                    theme: { color: "#e91e63" }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.open();
+
+            } catch (err) {
+                console.error(err);
+                alert("Payment initiation failed. Please try 'Pay at Salon'.");
+            }
+        }
+
+        async function submitBooking(bookingData, paymentId = null) {
             try {
                 const response = await fetch('/api/bookings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(bookingData)
+                    body: JSON.stringify({ ...bookingData, paymentId })
                 });
 
                 if (response.ok) {

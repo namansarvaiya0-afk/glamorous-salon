@@ -34,7 +34,7 @@ app.use(express.json());
 const authRoutes = require('./routes/auth');
 const paymentRoutes = require('./routes/payment');
 app.use('/api', authRoutes);
-app.use('/api', paymentRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Default route (homepage)
 app.get("/", (req, res) => {
