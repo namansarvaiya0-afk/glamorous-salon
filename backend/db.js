@@ -1,16 +1,23 @@
-const mysql = require("mysql2");
+const mysql = require("mysql2/promise");
+
+let db;
 
 const dbConfig = {
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "glamorous_salon",
-  port: process.env.DB_PORT || 3306,
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: parseInt(process.env.DB_PORT) || 3306,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  connectTimeout: 10000
 };
 
-const db = mysql.createPool(process.env.MYSQL_PUBLIC_URL || dbConfig);
+if (process.env.MYSQL_PUBLIC_URL) {
+  db = mysql.createPool(process.env.MYSQL_PUBLIC_URL);
+} else {
+  db = mysql.createPool(dbConfig);
+}
 
-module.exports = db.promise();
+module.exports = db;

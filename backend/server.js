@@ -12,7 +12,10 @@ const cron = require('node-cron');
 const db = require("./db");
 
 db.getConnection()
-    .then(() => console.log("✅ DB Connected Successfully"))
+    .then(connection => {
+        console.log("✅ DB Connected Successfully");
+        connection.release();
+    })
     .catch(err => {
         console.error("❌ DB Connection Failed:", err.message);
     });
