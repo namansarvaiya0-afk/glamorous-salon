@@ -265,7 +265,7 @@ app.post('/api/login', (req, res) => {
 // --- Forgot Password APIs (Email OTP) ---
 
 // 1. Send OTP
-app.post("/api/send-otp", async (req, res) => {
+app.post("/send-otp", async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: "Email required" });
 
@@ -340,7 +340,7 @@ app.post("/api/send-otp", async (req, res) => {
 });
 
 // 2. Verify OTP
-app.post("/api/verify-otp", async (req, res) => {
+app.post("/verify-otp", async (req, res) => {
     const { email, otp } = req.body;
     const now = Date.now();
 
@@ -372,7 +372,7 @@ app.post("/api/verify-otp", async (req, res) => {
 });
 
 // 3. Reset Password
-app.post("/api/reset-password", async (req, res) => {
+app.post("/reset-password", async (req, res) => {
     const { email, newPassword } = req.body;
 
     if (!useJson && db) {
