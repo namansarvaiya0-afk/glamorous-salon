@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: glamoroussalon
+    env: node
+    region: oregon
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DB_HOST
+        value: hopper.proxy.rlwy.net
+      - key: DB_PORT
+        value: 11936
+      - key: DB_USER
+        value: root
+      - key: DB_PASSWORD
+        value: ThoQshXEgnFiGjIdXcuvrzjLeSWWbrQf
+      - key: DB_NAME
+        value: railway
+      - key: JWT_SECRET
+        value: glamorous-salon-secret-key-2024
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: RAZORPAY_KEY_ID
+        value: rzp_live_SX4OStfJEgyome
+      - key: RAZORPAY_KEY_SECRET
+        value: ausQ0VQMma5ZbgNpHTGyHHPp
