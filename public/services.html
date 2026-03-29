@@ -615,7 +615,7 @@
             const bookingData = {
                 userEmail: user.email,
                 serviceName: currentBooking.name,
-                price: currentBooking.price,
+                price: parseFloat(currentBooking.price),
                 date: date,
                 time: time
             };
@@ -724,9 +724,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ...bookingData, paymentMethod: 'pay_at_salon' })
                 });
-                console.log('Response status:', response.status);
                 const data = await response.json();
-                console.log('Response data:', data);
 
                 if (response.ok) {
                     alert('Booking Confirmed! Pay ₹' + bookingData.price + ' at the salon.');

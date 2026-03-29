@@ -303,14 +303,17 @@ app.post('/api/bookings', async (req, res) => {
     try {
         const { userEmail, serviceName, price, date, time, paymentId, paymentMethod } = req.body;
         
+        console.log('Booking request:', { userEmail, serviceName, price, date, time, paymentMethod });
+        
         if (!userEmail || !serviceName || !date || !time) {
             return res.status(400).json({ error: 'Please provide all required fields and login first' });
         }
         
         const status = paymentMethod === 'pay_at_salon' ? 'Pending' : 'Confirmed';
+        const finalPrice = parseFloat(price) || 0;
         const [result] = await db.query(
             'INSERT INTO bookings (user_email, service_name, price, date, time, status) VALUES (?, ?, ?, ?, ?, ?)',
-            [userEmail, serviceName, price, date, time, status]
+            [userEmail, serviceName, finalPrice, date, time, status]
         );
         
         res.status(201).json({ message: 'Booking confirmed', id: result.insertId });
