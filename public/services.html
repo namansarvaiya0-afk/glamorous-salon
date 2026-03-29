@@ -693,17 +693,20 @@
 
         async function submitBooking(bookingData, paymentId = null) {
             try {
+                console.log('Booking data:', bookingData);
                 const response = await fetch('/api/bookings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ...bookingData, paymentId })
                 });
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
 
                 if (response.ok) {
                     alert('Luxury Experience Secured! Your journey is recorded.');
                     window.location.href = 'dashboard.html';
                 } else {
-                    const data = await response.json();
                     alert(data.error || 'Reservation failed. Please try again.');
                 }
             } catch (error) {
@@ -715,17 +718,20 @@
         async function payAtSalon(bookingData) {
             closeModal('bookingModal');
             try {
+                console.log('Pay at Salon - Booking data:', bookingData);
                 const response = await fetch('/api/bookings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ...bookingData, paymentMethod: 'pay_at_salon' })
                 });
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
 
                 if (response.ok) {
                     alert('Booking Confirmed! Pay ₹' + bookingData.price + ' at the salon.');
                     window.location.href = 'dashboard.html';
                 } else {
-                    const data = await response.json();
                     alert(data.error || 'Booking failed. Please try again.');
                 }
             } catch (error) {
