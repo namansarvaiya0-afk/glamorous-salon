@@ -620,11 +620,19 @@
 
         async function initiateOnlinePayment(bookingData) {
             try {
-                // 1. Create Order on Backend
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                const userName = localStorage.getItem('userName') || user.first_name || "Customer";
+
+                // 1. Create Order on Backend (Now includes booking data)
                 const res = await fetch("/api/payment/create-order", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ amount: bookingData.price })
+                    body: JSON.stringify({ 
+                        name: userName,
+                        email: bookingData.userEmail,
+                        service: bookingData.serviceName,
+                        amount: bookingData.price 
+                    })
                 });
 
                 if (!res.ok) throw new Error('Failed to create order');
@@ -632,14 +640,14 @@
 
                 // 2. Open Razorpay Checkout
                 const options = {
-                    key: "rzp_test_YOUR_KEY", // Replace with actual key
+                    key: "rzp_test_YOUR_KEY", // Replace with actual key from Razorpay Dashboard
                     amount: order.amount,
                     currency: "INR",
                     name: "Glamorous Salon",
                     description: bookingData.serviceName,
                     order_id: order.id,
                     handler: async function (response) {
-                        // 1. Verify Payment on Backend
+                        // 3. Verify Payment on Backend
                         const verifyRes = await fetch("/api/payment/verify-payment", {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
@@ -649,14 +657,15 @@
                         const verifyData = await verifyRes.json();
 
                         if (verifyData.success) {
-                            alert("Payment Verified ✅ Securing your slot...");
+                            alert("Booking Confirmed ✅ Securing your slot...");
+                            // Submit the final appointment record (date/time) to the server
                             await submitBooking(bookingData, response.razorpay_payment_id);
                         } else {
-                            alert("Payment Verification Failed ❌ Please contact support.");
+                            alert("Payment Verification Failed ❌ Please try again or contact support.");
                         }
                     },
                     prefill: {
-                        name: localStorage.getItem('userName') || "Customer",
+                        name: userName,
                         email: bookingData.userEmail
                     },
                     theme: { color: "#e91e63" }
@@ -667,7 +676,7 @@
 
             } catch (err) {
                 console.error(err);
-                alert("Payment initiation failed. Please try 'Pay at Salon'.");
+                alert("Payment initiation failed. Please check your connection or try 'Pay at Salon'.");
             }
         }
 
