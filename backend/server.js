@@ -301,10 +301,18 @@ app.get('/api/clients', (req, res) => {
 // Bookings
 app.post('/api/bookings', (req, res) => {
     const { userEmail, serviceName, price, date, time, paymentId, paymentMethod } = req.body;
+    
+    if (!userEmail || !serviceName || !date || !time) {
+        return res.status(400).send({ error: 'Please provide all required fields and login first' });
+    }
+    
     const status = paymentMethod === 'pay_at_salon' ? 'Pending' : 'Confirmed';
     executeQuery('INSERT INTO bookings (user_email, service_name, price, date, time, status) VALUES (?, ?, ?, ?, ?, ?)',
         [userEmail, serviceName, price, date, time, status], (err, results) => {
-            if (err) return res.status(500).send(err);
+            if (err) {
+                console.error('Booking Error:', err);
+                return res.status(500).send({ error: 'Booking failed. Please try again.' });
+            }
             res.status(201).send({ message: 'Booking confirmed', id: results.insertId });
         });
 });
