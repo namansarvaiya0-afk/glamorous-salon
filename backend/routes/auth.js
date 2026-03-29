@@ -12,8 +12,10 @@ router.post("/send-otp", async (req, res) => {
   try {
     const { email } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ message: "Email required" });
+    // 📧 Server-side Email Validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
     }
 
     const [user] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
@@ -96,6 +98,11 @@ router.post("/verify-otp", async (req, res) => {
 router.post("/reset-password", async (req, res) => {
   try {
     const { email, newPassword } = req.body;
+
+    // 🔑 Server-side Password Validation
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
 
     // 🛑 Security Check: Ensure OTP was verified first
     const [user] = await db.query("SELECT otp FROM users WHERE email = ?", [email]);
