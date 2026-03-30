@@ -1,0 +1,15 @@
+{
+  "name": "glamorous-salon",
+  "region": "oregon",
+  "type": "web_service",
+  "env": "node",
+  "ownerId": "tea-d750acu3jp1c739apmng",
+  "repo": "https://github.com/laxmanchoudhary4577-commits/glamorous-salon",
+  "serviceDetails": {
+    "env": "node",
+    "envSpecificDetails": {
+      "buildCommand": "cd backend && npm install",
+      "startCommand": "cd backend && npm start"
+    }
+  }
+}

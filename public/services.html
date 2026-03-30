@@ -9,7 +9,6 @@
     <title>Curated Services | Glamorous Studio Salon</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         :root {
             --pink-primary: #e91e63;
@@ -341,13 +340,9 @@
                 
                 <div style="margin-bottom: 30px;">
                     <label style="display: block; margin-bottom: 15px; font-weight: 600;">Payment Method</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
                         <label style="display: flex; align-items: center; gap: 10px; padding: 15px; border: 2px solid var(--pink-primary); border-radius: 15px; cursor: pointer; background: var(--pink-light);">
-                            <input type="radio" name="payment" value="online" checked>
-                            <span>Pay Now</span>
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 10px; padding: 15px; border: 2px solid #e2e8f0; border-radius: 15px; cursor: pointer;">
-                            <input type="radio" name="payment" value="pay_at_salon">
+                            <input type="radio" name="payment" value="pay_at_salon" checked>
                             <span>Pay at Salon</span>
                         </label>
                     </div>
@@ -640,75 +635,7 @@
                 time: convertTimeFormat(timeValue)
             };
 
-            if (paymentMethod === 'online') {
-                await initiateOnlinePayment(bookingData);
-            } else {
-                await payAtSalon(bookingData);
-            }
-        }
-
-        async function initiateOnlinePayment(bookingData) {
-            try {
-                const user = JSON.parse(localStorage.getItem('user') || '{}');
-                const userName = localStorage.getItem('userName') || user.first_name || "Customer";
-
-                // 1. Create Order on Backend (Now includes booking data)
-                const res = await fetch("/api/payment/create-order", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ 
-                        name: userName,
-                        email: bookingData.userEmail,
-                        service: bookingData.serviceName,
-                        amount: bookingData.price 
-                    })
-                });
-
-                if (!res.ok) throw new Error('Failed to create order');
-                const order = await res.json();
-
-                // 2. Open Razorpay Checkout
-                const options = {
-                    key: "rzp_live_SX4OStfJEgyome",
-                    amount: order.amount,
-                    currency: "INR",
-                    name: "Glamorous Salon",
-                    description: bookingData.serviceName,
-                    order_id: order.id,
-                    handler: async function (response) {
-                        // 3. Verify Payment on Backend
-                        const verifyRes = await fetch("/api/payment/verify-payment", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify(response)
-                        });
-
-                        const verifyData = await verifyRes.json();
-
-                        if (verifyData.success) {
-                            alert("Booking Confirmed ✅ Securing your slot...");
-                            // Submit the final appointment record (date/time) to the server
-                            await submitBooking(bookingData, response.razorpay_payment_id);
-                        } else {
-                            alert("Payment Verification Failed ❌ Please try again or contact support.");
-                        }
-                    },
-                    prefill: {
-                        name: userName,
-                        email: bookingData.userEmail
-                    },
-                    theme: { color: "#e91e63" }
-                };
-
-                const rzp = new Razorpay(options);
-                rzp.open();
-
-            } catch (err) {
-                console.error(err);
-                if (confirm("Payment failed. Would you like to pay at the salon instead?")) {
-                    await payAtSalon(bookingData);
-                }
-            }
+            await payAtSalon(bookingData);
         }
 
         async function submitBooking(bookingData, paymentId = null) {

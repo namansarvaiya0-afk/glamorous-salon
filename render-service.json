@@ -1,0 +1,12 @@
+{
+  "service": {
+    "name": "glamorous-salon",
+    "region": "oregon",
+    "owner_id": "tea-d750acu3jp1c739apmng",
+    "type": "web",
+    "env": "node",
+    "buildCommand": "cd backend && npm install",
+    "startCommand": "cd backend && npm start",
+    "healthCheckPath": "/"
+  }
+}
