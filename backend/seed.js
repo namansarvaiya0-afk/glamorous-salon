@@ -4,9 +4,9 @@ require("dotenv").config();
 
 const blackbookServices = [
   // Individual Services
-  ['Bridal Makeup', 2500, 180, 'Artistry', 'Full bridal makeup with premium products for your special day', 'https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=600&fit=crop'],
+  ['Bridal Makeup', 6000, 180, 'Artistry', 'Full bridal makeup with premium products for your special day', 'https://images.unsplash.com/photo-1457972729786-0411a3b2b626?w=600&fit=crop'],
   ['Party Makeup', 1500, 90, 'Artistry', 'Glamorous party makeup with HD finish', 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=600&fit=crop'],
-  ['Engagement Makeup', 1200, 60, 'Artistry', 'Elegant engagement makeup look', 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=600&fit=crop'],
+  ['Engagement Makeup', 3000, 60, 'Artistry', 'Elegant engagement makeup look', 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=600&fit=crop'],
   ['Facial', 600, 45, 'Therapy', 'Rejuvenating facial treatment for glowing skin', 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=600&fit=crop'],
   ['Hair Styling', 400, 45, 'Artistry', 'Professional hair styling for any occasion', 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&fit=crop'],
   ['Bleach', 300, 30, 'Therapy', 'Full body bleach treatment', 'https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?w=600&fit=crop'],
