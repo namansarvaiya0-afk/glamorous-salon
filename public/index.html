@@ -6,204 +6,221 @@
     <title>Glamorous Salon - Best Beauty Parlour in Delhi</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
+        * {
             margin: 0;
             padding: 0;
-            background-color: #ffffff;
-            color: #333333;
+            box-sizing: border-box;
         }
 
-        .header-top {
-            background-color: #f5f5f5;
-            padding: 8px 5%;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #fff;
+            color: #333;
+        }
+
+        .top-bar {
+            background: #d63384;
+            color: white;
+            padding: 10px 5%;
             text-align: center;
-            font-size: 13px;
-            color: #555;
+            font-size: 14px;
         }
 
-        .header-main {
-            background-color: #fff;
+        .header {
+            background: white;
             padding: 15px 5%;
-            border-bottom: 3px solid #e91e63;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
 
-        .logo h1 {
+        .logo {
             font-size: 28px;
-            color: #e91e63;
-            margin: 0;
+            font-weight: bold;
+            color: #d63384;
+            text-decoration: none;
         }
 
         .logo span {
             color: #333;
         }
 
-        .contact-header {
-            text-align: right;
+        .header-contact {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .header-contact a {
+            text-decoration: none;
+            color: #333;
             font-size: 14px;
         }
 
-        .contact-header p {
-            margin: 3px 0;
-            color: #555;
+        .header-contact i {
+            color: #d63384;
+            margin-right: 5px;
         }
 
-        .contact-header strong {
-            color: #e91e63;
-        }
-
-        .menu-bar {
-            background-color: #333;
+        .navbar {
+            background: #333;
             padding: 0 5%;
         }
 
-        .menu-bar ul {
+        .navbar ul {
             list-style: none;
-            margin: 0;
-            padding: 0;
             display: flex;
+            gap: 30px;
         }
 
-        .menu-bar li {
-            padding: 0;
-        }
-
-        .menu-bar a {
-            display: block;
-            color: #fff;
+        .navbar a {
+            color: white;
             text-decoration: none;
-            padding: 15px 20px;
+            padding: 15px 0;
+            display: block;
             font-size: 15px;
+            transition: 0.3s;
         }
 
-        .menu-bar a:hover {
-            background-color: #e91e63;
+        .navbar a:hover {
+            color: #d63384;
         }
 
-        .banner {
-            background: url('images/salon-bg.jpg') no-repeat center center;
-            background-size: cover;
-            height: 400px;
+        .hero {
+            position: relative;
+            height: 500px;
+            background: url('images/salon-bg.jpg') center/cover no-repeat;
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            background: rgba(0,0,0,0.5);
+            width: 100%;
+            height: 100%;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
             color: white;
+            padding: 20px;
         }
 
-        .banner-text {
-            background: rgba(0,0,0,0.6);
-            padding: 30px 50px;
-            border-radius: 10px;
+        .hero-content h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
         }
 
-        .banner-text h2 {
-            font-size: 36px;
-            margin-bottom: 10px;
-        }
-
-        .banner-text p {
+        .hero-content p {
             font-size: 18px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
-        .btn-appointment {
-            background-color: #e91e63;
+        .btn-primary {
+            background: #d63384;
             color: white;
             padding: 12px 30px;
             text-decoration: none;
             border-radius: 5px;
             font-weight: bold;
+            display: inline-block;
         }
 
-        .btn-appointment:hover {
-            background-color: #c2185b;
+        .btn-primary:hover {
+            background: #c22d73;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 5%;
+        .section {
+            padding: 60px 5%;
         }
 
-        .section-heading {
+        .section-title {
             text-align: center;
             margin-bottom: 40px;
         }
 
-        .section-heading h2 {
-            font-size: 30px;
+        .section-title h2 {
+            font-size: 32px;
             color: #333;
             margin-bottom: 10px;
         }
 
-        .section-heading .line {
-            width: 50px;
+        .section-title .line {
+            width: 60px;
             height: 3px;
-            background-color: #e91e63;
+            background: #d63384;
             margin: 0 auto;
         }
 
-        .services-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: center;
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        .service-box {
-            width: 300px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+        .service-card {
+            border: 1px solid #eee;
+            border-radius: 10px;
             overflow: hidden;
+            transition: 0.3s;
         }
 
-        .service-box img {
+        .service-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .service-card img {
             width: 100%;
-            height: 180px;
+            height: 200px;
             object-fit: cover;
         }
 
-        .service-content {
-            padding: 15px;
+        .service-card-content {
+            padding: 20px;
         }
 
-        .service-content h3 {
-            font-size: 18px;
-            margin: 0 0 10px;
+        .service-card h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
             color: #333;
         }
 
-        .service-content p {
-            font-size: 13px;
+        .service-card p {
             color: #666;
-            margin-bottom: 10px;
+            font-size: 14px;
+            margin-bottom: 15px;
         }
 
-        .service-content .price {
-            color: #e91e63;
+        .service-card .price {
+            color: #d63384;
+            font-size: 18px;
             font-weight: bold;
-            font-size: 16px;
         }
 
         .about-section {
-            background-color: #f9f9f9;
-            padding: 50px 5%;
+            background: #f9f9f9;
         }
 
-        .about-content {
+        .about-container {
+            display: flex;
+            gap: 40px;
             max-width: 1200px;
             margin: 0 auto;
-            display: flex;
-            gap: 30px;
             align-items: center;
+            flex-wrap: wrap;
         }
 
         .about-image {
             flex: 1;
+            min-width: 300px;
         }
 
         .about-image img {
@@ -213,36 +230,33 @@
 
         .about-text {
             flex: 1;
+            min-width: 300px;
         }
 
         .about-text h2 {
-            font-size: 28px;
+            font-size: 32px;
             margin-bottom: 15px;
         }
 
         .about-text p {
             color: #666;
-            line-height: 1.8;
             margin-bottom: 15px;
+            line-height: 1.8;
         }
 
-        .about-text ul {
+        .features {
             list-style: none;
-            padding: 0;
+            margin-top: 20px;
         }
 
-        .about-text li {
-            padding: 5px 0;
+        .features li {
+            padding: 8px 0;
             color: #555;
         }
 
-        .about-text li:before {
-            content: "✓ ";
-            color: #e91e63;
-        }
-
-        .gallery-section {
-            padding: 50px 5%;
+        .features i {
+            color: #d63384;
+            margin-right: 10px;
         }
 
         .gallery-grid {
@@ -254,8 +268,8 @@
         }
 
         .gallery-item {
-            height: 220px;
-            border-radius: 8px;
+            height: 250px;
+            border-radius: 10px;
             overflow: hidden;
         }
 
@@ -263,99 +277,106 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: 0.5s;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
         }
 
         .contact-section {
-            background-color: #f9f9f9;
-            padding: 50px 5%;
+            background: #f9f9f9;
         }
 
-        .contact-box {
-            max-width: 1200px;
-            margin: 0 auto;
+        .contact-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 30px;
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
-        .contact-details {
+        .contact-info {
             background: white;
             padding: 30px;
             border-radius: 10px;
-            border: 1px solid #ddd;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
-        .contact-details h3 {
-            font-size: 22px;
+        .contact-info h3 {
+            font-size: 24px;
             margin-bottom: 20px;
         }
 
         .contact-item {
             display: flex;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .contact-item i {
-            width: 35px;
-            height: 35px;
-            background: #e91e63;
+            width: 40px;
+            height: 40px;
+            background: #d63384;
             color: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 12px;
+            margin-right: 15px;
         }
 
-        .map-box {
+        .contact-item p {
+            color: #666;
+        }
+
+        .map-container {
             border-radius: 10px;
             overflow: hidden;
         }
 
-        .map-box iframe {
+        .map-container iframe {
             width: 100%;
-            height: 250px;
+            height: 300px;
             border: none;
         }
 
-        .footer {
-            background-color: #222;
+        footer {
+            background: #222;
             color: white;
             padding: 40px 5% 20px;
         }
 
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
+        .footer-container {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 25px;
+            gap: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         .footer-col h4 {
             font-size: 18px;
-            color: #e91e63;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            color: #d63384;
         }
 
         .footer-col ul {
             list-style: none;
-            padding: 0;
         }
 
-        .footer-col li {
-            margin-bottom: 8px;
+        .footer-col ul li {
+            margin-bottom: 10px;
         }
 
-        .footer-col a {
+        .footer-col ul li a {
             color: #ccc;
             text-decoration: none;
             font-size: 14px;
         }
 
-        .footer-col a:hover {
-            color: #e91e63;
+        .footer-col ul li a:hover {
+            color: #d63384;
         }
 
         .footer-bottom {
@@ -368,174 +389,160 @@
         }
 
         @media (max-width: 768px) {
-            .header-main {
+            .header {
                 flex-direction: column;
-                text-align: center;
+                gap: 15px;
             }
 
-            .contact-header {
-                text-align: center;
-                margin-top: 10px;
-            }
-
-            .menu-bar ul {
+            .navbar ul {
                 flex-wrap: wrap;
                 justify-content: center;
+                gap: 15px;
             }
 
-            .about-content {
-                flex-direction: column;
+            .hero h1 {
+                font-size: 32px;
             }
 
             .gallery-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .contact-box {
+            .contact-container {
                 grid-template-columns: 1fr;
             }
 
-            .footer-content {
+            .footer-container {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
 
         @media (max-width: 480px) {
-            .services-row {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .service-box {
-                width: 100%;
-                max-width: 300px;
-            }
-
             .gallery-grid {
                 grid-template-columns: 1fr;
             }
 
-            .footer-content {
+            .footer-container {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <div class="header-top">
-        Welcome to Glamorous Salon | Best Beauty Services in Delhi | Call: +91 9769894436
+    <div class="top-bar">
+        <i class="fas fa-phone"></i> Call us: +91 9769894436 | Open Daily: 9:00 AM - 8:00 PM
     </div>
 
-    <div class="header-main">
-        <div class="logo">
-            <h1>Glamorous <span>Salon</span></h1>
+    <header class="header">
+        <a href="index.html" class="logo">Glamorous <span>Salon</span></a>
+        <div class="header-contact">
+            <a href="tel:+919769894436"><i class="fas fa-phone"></i> +91 9769894436</a>
+            <a href="#"><i class="fas fa-map-marker"></i> Delhi</a>
+            <a href="login.html" class="btn-primary" style="padding: 8px 20px; font-size: 13px;">Login</a>
         </div>
-        <div class="contact-header">
-            <p><strong>Phone:</strong> +91 9769894436</p>
-            <p>Email: info@glamoroussalon.com</p>
-            <p>Open: 9:00 AM - 8:00 PM (Every Day)</p>
-        </div>
-    </div>
+    </header>
 
-    <div class="menu-bar">
+    <nav class="navbar">
         <ul>
             <li><a href="index.html">Home</a></li>
             <li><a href="services.html">Services</a></li>
-            <li><a href="#about">About Us</a></li>
+            <li><a href="#about">About</a></li>
             <li><a href="#gallery">Gallery</a></li>
             <li><a href="#contact">Contact</a></li>
-            <li><a href="login.html">Login</a></li>
         </ul>
-    </div>
+    </nav>
 
-    <div class="banner">
-        <div class="banner-text">
-            <h2>Welcome to Glamorous Salon</h2>
-            <p>Best Beauty Parlour in Delhi - Hair, Skin, Bridal & More</p>
-            <a href="services.html" class="btn-appointment">Book Appointment</a>
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Glamorous Salon</h1>
+            <p>Best Beauty Parlour in Delhi - Professional Hair, Skin & Bridal Services</p>
+            <a href="services.html" class="btn-primary">View Services</a>
         </div>
-    </div>
+    </section>
 
-    <div class="container" id="services">
-        <div class="section-heading">
+    <section class="section" id="services">
+        <div class="section-title">
             <h2>Our Services</h2>
             <div class="line"></div>
         </div>
-        <div class="services-row">
-            <div class="service-box">
+        <div class="services-grid">
+            <div class="service-card">
                 <img src="images/hair-styling.jpg" alt="Hair Styling">
-                <div class="service-content">
-                    <h3>Hair Styling & Cuts</h3>
+                <div class="service-card-content">
+                    <h3>Hair Styling</h3>
                     <p>Professional haircuts, coloring, and styling for all hair types.</p>
                     <span class="price">₹500 - ₹2500</span>
                 </div>
             </div>
-            <div class="service-box">
+            <div class="service-card">
                 <img src="images/facial.jpg" alt="Facial">
-                <div class="service-content">
+                <div class="service-card-content">
                     <h3>Facial & Skin Care</h3>
                     <p>Rejuvenating facials, cleanup, and skin treatments.</p>
                     <span class="price">₹800 - ₹3000</span>
                 </div>
             </div>
-            <div class="service-box">
+            <div class="service-card">
                 <img src="images/makeup.jpg" alt="Makeup">
-                <div class="service-content">
+                <div class="service-card-content">
                     <h3>Professional Makeup</h3>
                     <p>Party makeup, wedding makeup, and special occasions.</p>
                     <span class="price">₹1500 - ₹8000</span>
                 </div>
             </div>
-            <div class="service-box">
+            <div class="service-card">
                 <img src="images/bridal.jpg" alt="Bridal">
-                <div class="service-content">
+                <div class="service-card-content">
                     <h3>Bridal Package</h3>
                     <p>Complete bridal makeover for your special day.</p>
                     <span class="price">₹15000 - ₹50000</span>
                 </div>
             </div>
-            <div class="service-box">
+            <div class="service-card">
                 <img src="images/nail-art.jpg" alt="Nail Art">
-                <div class="service-content">
-                    <h3>Nail Art & Manicure</h3>
-                    <p>Beautiful nail art and manicure services.</p>
+                <div class="service-card-content">
+                    <h3>Nail Art</h3>
+                    <p>Beautiful nail art, manicure and pedicure services.</p>
                     <span class="price">₹300 - ₹1500</span>
                 </div>
             </div>
-            <div class="service-box">
+            <div class="service-card">
                 <img src="images/spa.jpg" alt="Spa">
-                <div class="service-content">
+                <div class="service-card-content">
                     <h3>Spa & Massage</h3>
                     <p>Relaxing spa treatments and therapeutic massages.</p>
                     <span class="price">₹1000 - ₹5000</span>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="about-section" id="about">
-        <div class="about-content">
+    <section class="section about-section" id="about">
+        <div class="section-title">
+            <h2>About Us</h2>
+            <div class="line"></div>
+        </div>
+        <div class="about-container">
             <div class="about-image">
                 <img src="images/about-us.jpg" alt="About Us">
             </div>
             <div class="about-text">
-                <h2>About Glamorous Salon</h2>
-                <div class="line" style="width: 50px; height: 3px; background: #e91e63; margin-bottom: 15px;"></div>
-                <p>Glamorous Salon is one of the most trusted beauty parlours in Delhi. Since 2018, we have been providing top-quality beauty services to our valued customers.</p>
-                <p>Our team consists of certified and experienced professionals who stay updated with the latest trends and techniques in the beauty industry. We use only premium products to ensure the best results for our clients.</p>
-                <ul>
-                    <li>5+ Years of Experience</li>
-                    <li>Expert and Certified Stylists</li>
-                    <li>Premium Quality Products</li>
-                    <li>Affordable and Transparent Pricing</li>
-                    <li>100% Customer Satisfaction</li>
+                <h2>Glamorous Salon - Your Beauty Destination</h2>
+                <p>We are one of the most trusted beauty salons in Delhi. Since 2018, we have been providing top-quality beauty services to our valued clients with love and care.</p>
+                <p>Our team consists of certified professionals who stay updated with the latest trends and techniques in the beauty industry.</p>
+                <ul class="features">
+                    <li><i class="fas fa-check"></i> 5+ Years Experience</li>
+                    <li><i class="fas fa-check"></i> Expert Stylists</li>
+                    <li><i class="fas fa-check"></i> Premium Products</li>
+                    <li><i class="fas fa-check"></i> Affordable Prices</li>
+                    <li><i class="fas fa-check"></i> 100% Satisfaction</li>
                 </ul>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="gallery-section" id="gallery">
-        <div class="section-heading">
+    <section class="section" id="gallery">
+        <div class="section-title">
             <h2>Our Gallery</h2>
             <div class="line"></div>
         </div>
@@ -559,19 +566,19 @@
                 <img src="images/gallery-6.jpg" alt="Gallery 6">
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="contact-section" id="contact">
-        <div class="section-heading">
+    <section class="section contact-section" id="contact">
+        <div class="section-title">
             <h2>Contact Us</h2>
             <div class="line"></div>
         </div>
-        <div class="contact-box">
-            <div class="contact-details">
+        <div class="contact-container">
+            <div class="contact-info">
                 <h3>Get in Touch</h3>
                 <div class="contact-item">
                     <i class="fas fa-map-marker-alt"></i>
-                    <p>Shop No. 123, Main Market, Karol Bagh, Delhi - 110005</p>
+                    <p>Shop No. 123, Main Market, Delhi</p>
                 </div>
                 <div class="contact-item">
                     <i class="fas fa-phone"></i>
@@ -583,43 +590,43 @@
                 </div>
                 <div class="contact-item">
                     <i class="fas fa-clock"></i>
-                    <p>Monday to Saturday: 9:00 AM - 8:00 PM</p>
+                    <p>Open: 9:00 AM - 8:00 PM (Daily)</p>
                 </div>
             </div>
-            <div class="map-box">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3504.5!2d77.19!3d28.65!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjjCsDM5JzAwLjAiTiA3N3DCsMTEnMDAuMCJF!5e0!3m2!1sen!2sin!4v1600000000000!5m2!1sen!2sin" allowfullscreen="" loading="lazy"></iframe>
+            <div class="map-container">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3502.012!2d77.1!3d28.6!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjjCsDM2JzAwLjAiTiA3N3DCsDA2JzAwLjAiRQ!5e0!3m2!1sen!2sin!4v1600000000000!5m2!1sen!2sin" allowfullscreen="" loading="lazy"></iframe>
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="footer">
-        <div class="footer-content">
+    <footer>
+        <div class="footer-container">
             <div class="footer-col">
                 <h4>Glamorous Salon</h4>
-                <p style="color: #aaa; font-size: 13px;">Your trusted beauty destination in Delhi. We provide quality salon services with care and dedication.</p>
+                <p style="color: #aaa; font-size: 14px;">Your trusted beauty destination in Delhi. We provide premium salon services with love and care.</p>
             </div>
             <div class="footer-col">
                 <h4>Quick Links</h4>
                 <ul>
                     <li><a href="index.html">Home</a></li>
                     <li><a href="services.html">Services</a></li>
-                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#about">About</a></li>
                     <li><a href="#contact">Contact</a></li>
                     <li><a href="login.html">Login</a></li>
                 </ul>
             </div>
             <div class="footer-col">
-                <h4>Our Services</h4>
+                <h4>Services</h4>
                 <ul>
                     <li><a href="services.html">Hair Styling</a></li>
-                    <li><a href="services.html">Facial & Skin Care</a></li>
+                    <li><a href="services.html">Facial</a></li>
                     <li><a href="services.html">Bridal Makeup</a></li>
                     <li><a href="services.html">Nail Art</a></li>
-                    <li><a href="services.html">Spa & Massage</a></li>
+                    <li><a href="services.html">Spa</a></li>
                 </ul>
             </div>
             <div class="footer-col">
-                <h4>Contact Info</h4>
+                <h4>Contact</h4>
                 <ul>
                     <li><a href="tel:+919769894436">+91 9769894436</a></li>
                     <li><a href="mailto:info@glamoroussalon.com">info@glamoroussalon.com</a></li>
@@ -630,6 +637,6 @@
         <div class="footer-bottom">
             <p>&copy; 2024 Glamorous Salon. All Rights Reserved.</p>
         </div>
-    </div>
+    </footer>
 </body>
 </html>
